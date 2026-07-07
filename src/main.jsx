@@ -59,8 +59,8 @@ const NPCS = [
   { id: "tofu", name: "두부", color: "#4fae9e", x: 530, y: 510, status: "온라인" },
 ];
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = __GATHERGARDEN_SUPABASE_URL__;
+const supabaseAnonKey = __GATHERGARDEN_SUPABASE_ANON_KEY__;
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 function getSessionId() {
@@ -101,6 +101,24 @@ function presenceList(state, selfId) {
       room: entry.room,
       lastSeen: entry.lastSeen || Date.now(),
     }));
+}
+
+function upsertPeer(peers, nextPeer) {
+  if (!nextPeer?.clientId) return peers;
+  const peer = {
+    id: nextPeer.clientId,
+    clientId: nextPeer.clientId,
+    name: nextPeer.name || "방문자",
+    color: nextPeer.color || COLORS[0],
+    x: Number(nextPeer.x) || 0,
+    y: Number(nextPeer.y) || 0,
+    room: nextPeer.room,
+    lastSeen: nextPeer.lastSeen || Date.now(),
+  };
+
+  const exists = peers.some((item) => item.clientId === peer.clientId);
+  if (!exists) return [...peers, peer];
+  return peers.map((item) => (item.clientId === peer.clientId ? { ...item, ...peer } : item));
 }
 
 function timeLabel(value = Date.now()) {
@@ -319,6 +337,10 @@ function App() {
       .on("presence", { event: "sync" }, () => {
         setPeers(presenceList(channel.presenceState(), clientIdRef.current));
       })
+      .on("broadcast", { event: "move" }, ({ payload }) => {
+        if (!payload || payload.clientId === clientIdRef.current || payload.room !== room.id) return;
+        setPeers((current) => upsertPeer(current, payload));
+      })
       .on("broadcast", { event: "chat" }, ({ payload }) => {
         setMessages((prev) => [...prev.slice(-80), payload]);
       })
@@ -342,13 +364,16 @@ function App() {
 
   useEffect(() => {
     if (!profile || !channelRef.current) return;
-    channelRef.current.track({
+    const payload = {
       clientId: clientIdRef.current,
       ...profile,
       ...position,
       room: room.id,
       lastSeen: Date.now(),
-    });
+    };
+
+    channelRef.current.track(payload);
+    channelRef.current.send({ type: "broadcast", event: "move", payload });
   }, [profile, position.x, position.y, room.id]);
 
   useEffect(() => {
