@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css">
+<style>
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#161022; }
+  body { font-family:'Galmuri11','Galmuri9','Apple SD Gothic Neo',sans-serif; }
+  * { box-sizing:border-box; }
+  a { color:#e8a33d; } a:hover { color:#f2bd6a; }
+  button { font-family:inherit; } input { font-family:inherit; }
+  @keyframes omBob { 0%,100% { transform:translate(-50%,-50%) translateY(0); } 50% { transform:translate(-50%,-50%) translateY(-4px); } }
+  @keyframes omBlink { 0%,55% { opacity:1; } 56%,100% { opacity:0; } }
+  @keyframes omPop { from { transform:scale(0.85); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes omSlideR { from { transform:translateX(18px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+  @keyframes omDrop { from { transform:translate(-50%,-14px); opacity:0; } to { transform:translate(-50%,0); opacity:1; } }
+  ::-webkit-scrollbar { width:10px; }
+  ::-webkit-scrollbar-thumb { background:#c9b89a; border:3px solid #fff8e8; }
+  ::-webkit-scrollbar-track { background:transparent; }
+</style>
+</helmet>
+<div data-screen-label="재택타운 월드" style="position:fixed;inset:0;background:#161022;overflow:hidden;">
+
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5d4d7a;font-size:14px;letter-spacing:3px;">LOADING TOWN…</div>
+  <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;"></canvas>
+
+  <div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.06) 0px,rgba(0,0,0,0.06) 1px,transparent 1px,transparent 4px);opacity:0.55;"></div>
+  <sc-if value="{{ isSunset }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,122,60,0.18),rgba(120,40,90,0.24));mix-blend-mode:multiply;"></div>
+  </sc-if>
+  <sc-if value="{{ isNight }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;pointer-events:none;background:rgba(28,20,72,0.5);mix-blend-mode:multiply;"></div>
+    <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%, transparent 32%, rgba(10,6,30,0.4) 100%);"></div>
+  </sc-if>
+
+  <div style="position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:8px;pointer-events:none;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.55);padding:8px 12px;font-size:16px;letter-spacing:1px;">{{ L.roomName }}</div>
+      <div style="background:#fff8e8;color:#241a38;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.55);padding:7px 10px;font-size:11px;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+        <span style="width:8px;height:8px;background:#58b368;display:inline-block;border:2px solid #241a38;"></span>
+        <span>{{ onlineCount }}{{ L.online }}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <div style="background:rgba(24,17,40,0.82);color:#ffe9b8;border:2px solid #241a38;padding:5px 9px;font-size:11px;white-space:nowrap;">📍 {{ zoneLabel }}</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:14px;right:14px;background:#241a38;border:3px solid #100b20;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:5px;pointer-events:none;">
+    <canvas ref="{{ miniRef }}" style="display:block;width:184px;height:120px;image-rendering:pixelated;"></canvas>
+  </div>
+
+  <sc-if value="{{ inMeeting }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fff8e8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);padding:10px;animation:omDrop 0.2s ease-out;pointer-events:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="width:9px;height:9px;background:#d94f4f;border:2px solid #241a38;animation:omBlink 1.2s steps(1) infinite;"></span>
+        <span style="font-size:13px;color:#241a38;">📋 {{ L.meetingRoom }} · {{ L.meetingTitle }}</span>
+        <span style="font-size:9px;color:#8d7ab0;">{{ L.leaveHint }}</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <sc-for list="{{ meetTiles }}" as="v" hint-placeholder-count="3">
+          <div key="{{ v.id }}" style="width:172px;height:118px;border:3px solid #241a38;position:relative;overflow:hidden;background:{{ v.bg }};">
+            <sc-if value="{{ v.camOn }}" hint-placeholder-val="{{ false }}">
+              <span style="{{ v.avBig }}"></span>
+              <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 4px);"></div>
+            </sc-if>
+            <sc-if value="{{ v.camOff }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;background:#241a38;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+                <span style="{{ v.avDim }}"></span>
+                <span style="font-size:9px;color:#8d7ab0;">{{ L.camOffL }}</span>
+              </div>
+            </sc-if>
+            <div style="position:absolute;left:4px;bottom:4px;background:rgba(16,11,32,0.82);color:#fff8e8;font-size:9px;padding:3px 6px;display:flex;align-items:center;gap:4px;">
+              <sc-if value="{{ v.muted }}" hint-placeholder-val="{{ false }}"><span>🔇</span></sc-if>
+              <span>{{ v.name }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showNearby }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;animation:omDrop 0.2s ease-out;pointer-events:none;">
+      <div style="background:#241a38;border:3px solid #100b20;color:#9fe3a8;font-size:10px;padding:5px 10px;display:flex;gap:6px;align-items:center;">
+        <span style="width:8px;height:8px;background:#58b368;border:2px solid #100b20;animation:omBlink 1.4s steps(1) infinite;"></span>
+        <span>{{ L.nearbyCall }}</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <sc-for list="{{ nearTiles }}" as="v" hint-placeholder-count="2">
+          <div key="{{ v.id }}" style="width:148px;height:102px;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.5);position:relative;overflow:hidden;background:{{ v.bg }};">
+            <sc-if value="{{ v.camOn }}" hint-placeholder-val="{{ false }}">
+              <span style="{{ v.avSmall }}"></span>
+              <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 4px);"></div>
+            </sc-if>
+            <sc-if value="{{ v.camOff }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0;background:#241a38;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;">
+                <span style="{{ v.avDim }}"></span>
+                <span style="font-size:9px;color:#8d7ab0;">{{ L.camOffL }}</span>
+              </div>
+            </sc-if>
+            <div style="position:absolute;left:4px;bottom:4px;background:rgba(16,11,32,0.82);color:#fff8e8;font-size:9px;padding:2px 6px;display:flex;align-items:center;gap:4px;">
+              <sc-if value="{{ v.muted }}" hint-placeholder-val="{{ false }}"><span>🔇</span></sc-if>
+              <span>{{ v.name }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ inFocus }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fff8e8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);padding:12px 18px;animation:omDrop 0.2s ease-out;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#241a38;">
+        <span>🍅</span><span>{{ L.pomoTitle }}</span>
+        <span style="background:{{ pomoPhaseBg }};color:#fff8e8;font-size:10px;padding:3px 7px;border:2px solid #241a38;">{{ pomoPhaseLabel }}</span>
+      </div>
+      <div style="font-size:34px;color:#241a38;letter-spacing:4px;">{{ pomoClock }}</div>
+      <div style="display:flex;gap:3px;">
+        <sc-for list="{{ pomoCells }}" as="c" hint-placeholder-count="10">
+          <span style="width:14px;height:10px;border:2px solid #241a38;background:{{ c.bg }};"></span>
+        </sc-for>
+      </div>
+      <div style="font-size:10px;color:#8d7ab0;">{{ pomoMembers }} · {{ L.together }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showPrompt }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;bottom:104px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(16,11,32,0.9);border:3px solid #241a38;padding:8px 12px;animation:omPop 0.15s ease-out;pointer-events:none;">
+      <span style="background:#ffe9b8;color:#241a38;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:3px 9px;font-size:12px;">E</span>
+      <span style="color:#fff8e8;font-size:12px;">{{ promptLabel }}</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ emojiOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:8px;animation:omPop 0.15s ease-out;">
+      <sc-for list="{{ emojiBtns }}" as="e" hint-placeholder-count="6">
+        <button onClick="{{ e.onPick }}" style="width:46px;height:46px;font-size:22px;background:#f6edd8;border:3px solid #241a38;cursor:pointer;box-shadow:0 3px 0 rgba(36,26,56,0.7);display:flex;align-items:center;justify-content:center;padding:0;" style-hover="background:#ffe9b8;">{{ e.ch }}</button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <div style="position:absolute;bottom:170px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="1">
+      <div key="{{ t.id }}" style="background:#241a38;color:#ffe9b8;border:3px solid #100b20;box-shadow:3px 3px 0 rgba(12,8,24,0.5);padding:8px 14px;font-size:12px;animation:omPop 0.18s ease-out;">{{ t.text }}</div>
+    </sc-for>
+  </div>
+
+  <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;gap:8px;">
+    <div style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:6px 10px;">
+      <span style="{{ myAvatarStyle }}"></span>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <span style="font-size:12px;color:#241a38;">{{ L.you }}</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:9px;color:#8d7ab0;">
+          <span style="width:7px;height:7px;border:1px solid #241a38;background:{{ myStatusColor }};display:inline-block;"></span>
+          <span>{{ myStatusLabel }}</span>
+        </span>
+      </div>
+    </div>
+    <sc-for list="{{ toolbarBtns }}" as="b" hint-placeholder-count="7">
+      <button key="{{ b.id }}" onClick="{{ b.onClick }}" title="{{ b.label }}" style="position:relative;width:57px;background:{{ b.bg }};border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 0;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">
+        <span style="font-size:19px;line-height:1;">{{ b.icon }}</span>
+        <span style="font-size:9px;color:#4a3f63;">{{ b.label }}</span>
+        <sc-if value="{{ b.showBadge }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;background:#d94f4f;color:#fff8e8;border:2px solid #241a38;font-size:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;">{{ b.badge }}</span>
+        </sc-if>
+        <sc-if value="{{ b.showOff }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute;top:4px;right:6px;width:9px;height:9px;background:#d94f4f;border:2px solid #241a38;"></span>
+        </sc-if>
+      </button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:14px;right:14px;bottom:92px;width:302px;background:#f6edd8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);display:flex;flex-direction:column;animation:omSlideR 0.18s ease-out;">
+      <div style="display:flex;border-bottom:3px solid #241a38;flex:none;">
+        <button onClick="{{ openChatTab }}" style="flex:1;padding:10px 0;font-size:12px;border:none;cursor:pointer;background:{{ chatTabBg }};color:#241a38;border-right:3px solid #241a38;">💬 {{ L.chat }}</button>
+        <button onClick="{{ openPeopleTab }}" style="flex:1;padding:10px 0;font-size:12px;border:none;cursor:pointer;background:{{ peopleTabBg }};color:#241a38;">👥 {{ L.people }} ({{ onlineCount }})</button>
+        <button onClick="{{ closePanel }}" style="width:38px;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:12px;">✕</button>
+      </div>
+      <sc-if value="{{ tabChat }}" hint-placeholder-val="{{ true }}">
+        <div ref="{{ chatListRef }}" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;">
+          <sc-for list="{{ messages }}" as="m" hint-placeholder-count="3">
+            <sc-if value="{{ m.isSys }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;font-size:9px;color:#a08fbe;padding:2px 0;">— {{ m.text }} —</div>
+            </sc-if>
+            <sc-if value="{{ m.isMsg }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:2px;">
+                <div style="display:flex;align-items:baseline;gap:6px;">
+                  <span style="font-size:11px;color:{{ m.color }};">{{ m.name }}</span>
+                  <span style="font-size:8px;color:#b3a68f;">{{ m.time }}</span>
+                </div>
+                <div style="font-size:11px;color:#3b3252;background:#f6edd8;border:2px solid #e4d5b4;padding:6px 8px;line-height:1.5;">{{ m.text }}</div>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="display:flex;border-top:3px solid #241a38;flex:none;">
+          <input ref="{{ chatInputRef }}" value="{{ chatDraft }}" onChange="{{ onChatChange }}" onKeyDown="{{ onChatKey }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.typeMsg }}" style="flex:1;min-width:0;border:none;outline:none;background:#fff8e8;padding:12px 10px;font-size:12px;color:#241a38;">
+          <button onClick="{{ sendChat }}" style="border:none;border-left:3px solid #241a38;background:#58b368;color:#fff8e8;padding:0 14px;font-size:11px;cursor:pointer;">{{ L.send }}</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ tabPeople }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#fff8e8;">
+          <sc-for list="{{ participants }}" as="p" hint-placeholder-count="6">
+            <div key="{{ p.id }}" style="display:flex;align-items:center;gap:8px;background:#f6edd8;border:2px solid #e4d5b4;padding:6px 8px;">
+              <span style="{{ p.avStyle }}"></span>
+              <span style="flex:1;font-size:11px;color:#241a38;">{{ p.name }}</span>
+              <span style="display:flex;align-items:center;gap:4px;font-size:9px;color:#8d7ab0;">
+                <span style="width:7px;height:7px;border:1px solid #241a38;background:{{ p.dot }};display:inline-block;"></span>
+                <span>{{ p.status }}</span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:26px 30px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:430px;">
+        <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.4);padding:10px 18px;font-size:20px;letter-spacing:2px;">{{ L.roomName }}</div>
+        <div style="font-size:12px;color:#8d7ab0;">{{ L.welcomeSub }}</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center;background:#fff8e8;border:3px solid #241a38;padding:14px 18px;">
+          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">WASD · ←↑↓→</span>
+          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlMove }}</span>
+          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">E</span>
+          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlInteract }}</span>
+          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">1 – 6</span>
+          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlEmote }}</span>
+          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">Enter</span>
+          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlChat }}</span>
+        </div>
+        <div style="font-size:10px;color:#8d7ab0;text-align:center;line-height:1.6;">💡 {{ L.tip }}</div>
+        <button onClick="{{ dismissWelcome }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:12px 24px;font-size:13px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">▶ {{ L.startBtn }}</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;npcCount&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 8, &quot;min&quot;: 0, &quot;max&quot;: 8, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;월드&quot; },
+  &quot;timeOfDay&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;day&quot;, &quot;options&quot;: [&quot;day&quot;, &quot;sunset&quot;, &quot;night&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;월드&quot; },
+  &quot;npcChatter&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;월드&quot; },
+  &quot;playerSpeed&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 3.4, &quot;min&quot;: 2, &quot;max&quot;: 6, &quot;step&quot;: 0.2, &quot;unit&quot;: &quot;타일/초&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;플레이어&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0,
+    chatDraft: '', emojiOpen: false, showWelcome: true, micOn: true, camOn: true,
+    toasts: [], messages: [],
+    ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
+  };
+
+  canvasRef = React.createRef();
+  miniRef = React.createRef();
+  chatListRef = React.createRef();
+  chatInputRef = React.createRef();
+
+  T = 32; MW = 46; MH = 30;
+  BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+  EMOJI = ['👍','❤️','😂','🎉','😮','☕'];
+  STATUS_DOT = { online:'#58b368', focus:'#4a90d9', break:'#e8a33d', meeting:'#9b6bd3', pomo:'#e2574c', game:'#5561d8', call:'#d3699b', relax:'#4fae9e' };
+
+  I18N = {
+    ko: {
+      roomName:'재택타운', online:'명 접속 중', chat:'채팅', people:'참가자', send:'전송',
+      typeMsg:'메시지 입력…', mic:'마이크', cam:'카메라', react:'리액션', help:'도움말', you:'나',
+      camOffL:'카메라 꺼짐', nearbyCall:'근처 대화 연결됨', meetingRoom:'회의실 A', meetingTitle:'주간 싱크',
+      leaveHint:'방을 나가면 통화 종료', pomoTitle:'뽀모도로 라운지', focusPhase:'집중', breakPhase:'휴식',
+      together:'함께 집중 중', welcomeSub:'재택러들의 픽셀 아지트', ctrlMove:'이동', ctrlInteract:'상호작용 · 앉기 / 일어나기',
+      ctrlEmote:'이모지 리액션', ctrlChat:'채팅 열기', startBtn:'아무 키나 눌러 입장', tip:'동료 곁에 다가가면 화상 대화가 연결돼요. 회의실·뽀모도로 룸도 구경해 보세요!',
+      z_meeting:'회의실', z_focus:'뽀모도로 룸', z_cafe:'카페', z_game:'게임 코너', z_work:'오픈 데스크', z_lounge:'라운지', z_hall:'로비',
+      st_online:'온라인', st_focus:'집중 중', st_break:'커피 브레이크', st_meeting:'회의 중', st_pomo:'뽀모도로', st_game:'게임 중', st_call:'통화 중', st_relax:'쉬는 중'
+    },
+    en: {
+      roomName:'WFH TOWN', online:' online', chat:'Chat', people:'People', send:'Send',
+      typeMsg:'Type a message…', mic:'Mic', cam:'Camera', react:'React', help:'Help', you:'Me',
+      camOffL:'Camera off', nearbyCall:'Nearby call connected', meetingRoom:'Meeting Room A', meetingTitle:'Weekly Sync',
+      leaveHint:'Walk out to leave the call', pomoTitle:'Pomodoro Lounge', focusPhase:'FOCUS', breakPhase:'BREAK',
+      together:'focusing together', welcomeSub:'A pixel hideout for remote workers', ctrlMove:'Move', ctrlInteract:'Interact · Sit / Stand',
+      ctrlEmote:'Emoji reaction', ctrlChat:'Open chat', startBtn:'Press any key to enter', tip:'Walk up to a coworker to start a video chat. Check out the meeting room and pomodoro room too!',
+      z_meeting:'Meeting Room', z_focus:'Pomodoro Room', z_cafe:'Café', z_game:'Game Corner', z_work:'Open Desks', z_lounge:'Lounge', z_hall:'Lobby',
+      st_online:'Online', st_focus:'Focusing', st_break:'Coffee break', st_meeting:'In a meeting', st_pomo:'Pomodoro', st_game:'Gaming', st_call:'On a call', st_relax:'Chilling'
+    }
+  };
+
+  LINES = {
+    latte: [['라떼는 말이야… 오늘 원두 상태 최고예요 ☕','Latte here… beans are elite today ☕'],['커피 내려드려요, 선착순 3명!','Free pour-over, first 3 people!'],['디카페인도 커피입니다. 존중해 주세요','Decaf is coffee too. Respect it'],['우유 스팀 소리, 무료 ASMR입니다','Milk steaming = free ASMR']],
+    jay: [['자, 이번 주 목표부터 볼까요?','OK, this week\'s goals first'],['그건 액션 아이템으로 적어둘게요','Noted as an action item'],['5분만 더 하고 끝낼게요. 진짜로요','5 more minutes, I promise'],['제 화면 공유 보이시나요?','Can you see my screen?']],
+    matcha: [['오 그거 완전 좋은데요?','Ooh I really like that'],['런칭 밈은 제가 만들게요','I\'ll make the launch memes'],['방금 거 채팅에도 적어주세요!','Drop that in the chat too!']],
+    mimosa: [['(집중 중… 🍅)','(focusing… 🍅)'],['이번 세션 끝나고 얘기해요!','Talk after this session!']],
+    pingu: [['하이스코어 갱신 각 보인다','New high score incoming'],['한 판 지면 커피 내기 어때요','Loser buys coffee?'],['왼쪽 버튼 좀 뻑뻑하니 조심하세요','Left button\'s sticky, careful']],
+    conan: [['버그가 아니라 기능입니다','It\'s not a bug, it\'s a feature'],['배포 전에 기도 한 번 하고 갑니다','A quick prayer before deploy'],['커밋 메시지: fix fix fix fix','commit: fix fix fix fix']],
+    donut: [['방금 산책 갔다 왔는데 세상 좋더라','Just walked outside. World = nice'],['이 러그 색 완전 취향 저격 아님?','This rug color is SO good'],['저녁 배달 뭐 시킬지 투표 받습니다','Voting open for tonight\'s delivery']],
+    tofu: [['다들 허리 펴세요! 스트레칭 타임','Stretch break! Posture check'],['오늘 만보 걷기 도전 중입니다','Attempting 10k steps today'],['회의 없는 수요일 만세','Long live no-meeting Wednesday']],
+    greet: [['어 안녕하세요! 👋','Oh hey! 👋'],['오늘도 재택 파이팅이에요','Happy WFH day'],['마이크 잘 들려요?','Can you hear me OK?']],
+    reply: [['ㅋㅋㅋ 인정','lol so true'],['오 좋은데요?','ooh nice'],['일단 커피부터요 ☕','coffee first ☕'],['그거 회고 때 얘기해요!','bring that to retro!'],['👍👍','👍👍']]
+  };
+
+  NPCDEF = [
+    { id:'latte', ko:'라떼', en:'Latte', col:'#e8a33d', skin:'#f0c8a0', hair:'#6e4a2f', style:'bun', shirt:'#e8a33d', pants:'#4a4a5e', bag:true, mode:'stand', tx:18, ty:4, dir:'up', status:'break', camOn:false, pool:'latte', talk:[14,10] },
+    { id:'jay', ko:'제이', en:'Jay', col:'#9b6bd3', skin:'#e8b48c', hair:'#241a38', style:'cap', cap:'#5561d8', shirt:'#9b6bd3', pants:'#3d4a6b', mode:'sit', seat:{x:5,y:3,dir:'down'}, status:'meeting', noCall:true, pool:'jay', talk:[11,8] },
+    { id:'matcha', ko:'말차', en:'Matcha', col:'#58b368', skin:'#f0c8a0', hair:'#4a3626', style:'long', shirt:'#58b368', pants:'#5a4632', mode:'sit', seat:{x:6,y:6,dir:'up'}, status:'meeting', noCall:true, pool:'matcha', talk:[13,9] },
+    { id:'mimosa', ko:'미모사', en:'Mimosa', col:'#d3699b', skin:'#e8b48c', hair:'#b3486e', style:'long', shirt:'#d3699b', pants:'#3d4a6b', mode:'sit', seat:{x:36,y:4,dir:'up'}, status:'pomo', noCall:true, pool:'mimosa', talk:[40,25] },
+    { id:'pingu', ko:'핑구', en:'Pingu', col:'#5561d8', skin:'#f0c8a0', hair:'#241a38', style:'spiky', shirt:'#5561d8', pants:'#2c2438', mode:'wander', roam:[{x:32,y:14,w:11,h:6}], tx:35, ty:15, status:'game', pool:'pingu', talk:[15,10] },
+    { id:'conan', ko:'코난', en:'Conan', col:'#4a90d9', skin:'#f0c8a0', hair:'#3b2d26', style:'bowl', shirt:'#4a90d9', pants:'#4a4a5e', mode:'sit', seat:{x:8,y:14,dir:'down'}, status:'focus', pool:'conan', talk:[20,15] },
+    { id:'donut', ko:'도넛', en:'Donut', col:'#e2574c', skin:'#f0c8a0', hair:'#d95a4a', style:'hood', shirt:'#e2574c', pants:'#3d4a6b', bag:true, mode:'wander', roam:[{x:3,y:22,w:10,h:6},{x:17,y:22,w:18,h:6}], tx:8, ty:24, status:'online', pool:'donut', talk:[13,9] },
+    { id:'tofu', ko:'두부', en:'Tofu', col:'#4fae9e', skin:'#e8b48c', hair:'#2c2438', style:'hood', shirt:'#4fae9e', pants:'#3d4a6b', mode:'wander', roam:[{x:2,y:11,w:26,h:9},{x:15,y:3,w:18,h:6},{x:18,y:22,w:24,h:6}], tx:22, ty:14, status:'online', pool:'tofu', talk:[11,8] }
+  ];
+
+  componentDidMount() {
+    if (this._booted) return;
+    this._booted = true;
+    this.keys = new Set(); this.typing = false; this.emotes = []; this.tmrs = []; this.mid = 1; this._spr = {};
+    this.buildWorld();
+    this.buildEntities();
+    this.buildStatic();
+    this.makeAvatars();
+    this.pomo = { phase:'focus', end: Date.now() + 25*60*1000 };
+    this.bootAt = Date.now(); this.lastZone = null; this.uiSig = ''; this.lastSync = 0; this.lastMini = 0;
+    window.addEventListener('keydown', this.onKey);
+    window.addEventListener('keyup', this.onKey);
+    window.addEventListener('blur', this.onWinBlur);
+    this.ro = new ResizeObserver(this.resize);
+    const cv = this.canvasRef.current;
+    if (cv && cv.parentElement) this.ro.observe(cv.parentElement);
+    this.resize();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try { this.buildStatic(); } catch(e){} });
+    this.after(700, () => this.pushMsg({ id:this.mid++, sys:true, ko:'재택타운에 입장했어요. 환영해요! 🎉', en:'You joined WFH Town. Welcome! 🎉', time:this.tstr() }));
+    this.after(1800, () => { const n = this.npcById.latte; if (n && this.isActive(n)) this.say(n, ['커피 머신 새로 들어왔어요. 카페로 오세요 ☕','New coffee machine just landed. Come by the café ☕']); });
+    this.after(3400, () => { const n = this.npcById.jay; if (n && this.isActive(n)) this.say(n, ['3시 주간 싱크는 회의실 A에서 해요!','Weekly sync at 3pm in Meeting Room A!']); });
+    this.setState({ ready: true });
+    this._loop = () => { try { this.tick(); } catch(e) { console.error(e); } this._raf = requestAnimationFrame(this._loop); };
+    this._raf = requestAnimationFrame(this._loop);
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf);
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('keyup', this.onKey);
+    window.removeEventListener('blur', this.onWinBlur);
+    if (this.ro) this.ro.disconnect();
+    (this.tmrs || []).forEach(clearTimeout);
+    this._booted = false;
+  }
+
+  componentDidUpdate(pp, ps) {
+    if (ps && ps.messages !== this.state.messages) {
+      const el = this.chatListRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    }
+  }
+
+  // ————— helpers —————
+  mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  after(ms, fn) { const t = setTimeout(fn, ms); this.tmrs.push(t); return t; }
+  pick(a) { return a[(Math.random() * a.length) | 0]; }
+  tstr() { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+  chatterOn() { const p = this.props || {}; return p.npcChatter !== false; }
+  activeNpcs() { const p = this.props || {}; const c = Math.max(0, Math.min(8, p.npcCount != null ? p.npcCount : 8)); return (this.npcs || []).slice(0, c); }
+  isActive(n) { return this.activeNpcs().indexOf(n) >= 0; }
+  shade(hex, amt) {
+    let r, g, b;
+    if (hex[0] === '#') { const n = parseInt(hex.slice(1), 16); r = n >> 16 & 255; g = n >> 8 & 255; b = n & 255; } else { return hex; }
+    if (amt >= 0) { r += (255 - r) * amt; g += (255 - g) * amt; b += (255 - b) * amt; } else { r *= 1 + amt; g *= 1 + amt; b *= 1 + amt; }
+    return 'rgb(' + (r|0) + ',' + (g|0) + ',' + (b|0) + ')';
+  }
+  vidBg(col) { return 'linear-gradient(180deg,' + this.shade(col, -0.35) + ',' + this.shade(col, -0.65) + ')'; }
+  zoneAt(x, y) { for (const z of this.zones) { if (x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) return z.id; } return 'hall'; }
+
+  // ————— world —————
+  buildWorld() {
+    const W = this.MW, H = this.MH;
+    this.wall = new Uint8Array(W * H);
+    const WL = (x, y, v) => { if (x >= 0 && y >= 0 && x < W && y < H) this.wall[y * W + x] = v; };
+    for (let x = 0; x < W; x++) { WL(x,0,1); WL(x,1,1); WL(x,H-1,1); }
+    for (let y = 0; y < H; y++) { WL(0,y,1); WL(W-1,y,1); }
+    for (let x = 1; x <= 13; x++) if (x !== 7 && x !== 8) WL(x,10,2);
+    for (let y = 2; y <= 9; y++) WL(13,y,2);
+    for (let x = 35; x <= 44; x++) if (x !== 39 && x !== 40) WL(x,10,2);
+    for (let y = 2; y <= 9; y++) WL(35,y,2);
+    this.solid = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) this.solid[i] = this.wall[i] ? 1 : 0;
+    this.zones = [
+      { id:'meeting', x:1, y:2, w:12, h:9 },
+      { id:'focus', x:36, y:2, w:9, h:9 },
+      { id:'cafe', x:14, y:2, w:21, h:8 },
+      { id:'game', x:30, y:11, w:15, h:10 },
+      { id:'work', x:1, y:11, w:29, h:10 },
+      { id:'lounge', x:1, y:21, w:16, h:8 }
+    ];
+    this.FM = { desk:{w:2,h:1}, chair:{w:1,h:1}, stool:{w:1,h:1}, tableBig:{w:4,h:2}, counter:{w:9,h:1}, machine:{w:1,h:1,pass:true}, fridge:{w:1,h:1}, vending:{w:1,h:1}, cooler:{w:1,h:1}, sofa:{w:3,h:1}, armchair:{w:1,h:1}, ctable:{w:2,h:1}, rtable:{w:1,h:1}, tv:{w:2,h:1}, plant:{w:1,h:1}, shelf:{w:2,h:1}, arcade:{w:1,h:1}, beanbag:{w:1,h:1}, printer:{w:1,h:1}, rdesk:{w:3,h:1}, sign:{w:1,h:1}, booth:{w:2,h:2}, lamp:{w:1,h:1}, wboard:{w:2,h:1} };
+    this.furn = []; this.inters = [];
+    const F = (t, x, y, o) => { this.furn.push(Object.assign({ t, x, y }, o || {})); };
+    const SEAT = (x, y, sdir, kind, ex, ey, ko, en) => { this.inters.push({ id:'s'+x+'_'+y, act:'sit', x, y, r:1.5, sx:x, sy:y, sdir, kind, ex, ey, ko, en }); };
+    const TOAST = (id, x, y, ko, en, tko, ten, emote, extra) => { this.inters.push(Object.assign({ id, act:'toast', x, y, r:1.6, ko, en, tko, ten, emote }, extra || {})); };
+
+    // meeting room
+    F('tableBig', 4, 4);
+    [4,5,6,7].forEach(x => F('chair', x, 3, { dir:'down', v:'#d95f52' }));
+    [4,5,6,7].forEach(x => F('chair', x, 6, { dir:'up', v:'#d95f52' }));
+    F('plant', 1, 2); F('plant', 12, 9, { v:1 });
+    [4,6,7].forEach(x => SEAT(x, 3, 'down', 'meeting', x, 2, '회의 참여하기', 'Join the meeting'));
+    [4,5,7].forEach(x => SEAT(x, 6, 'up', 'meeting', x, 7, '회의 참여하기', 'Join the meeting'));
+    // focus room
+    [36,39,42].forEach(x => { F('desk', x, 3); F('chair', x, 4, { dir:'up', v:'#8f7fb0' }); });
+    F('plant', 36, 8, { v:1 }); F('beanbag', 43, 8, { v:'#8f7fb0' });
+    [39,42].forEach(x => SEAT(x, 4, 'up', 'pomo', x, 5, '뽀모도로 참여하기', 'Join the pomodoro'));
+    // cafe
+    F('counter', 16, 3);
+    F('machine', 18, 3, { oy:-14, ys:20 });
+    F('fridge', 26, 3); F('vending', 28, 3); F('cooler', 30, 3); F('plant', 32, 3, { v:2 });
+    [17,19,21,23].forEach(x => { F('stool', x, 5); SEAT(x, 5, 'up', 'relax', x, 6, '바 자리에 앉기', 'Sit at the bar'); });
+    F('rtable', 18, 7); F('rtable', 22, 7);
+    [[17,'right'],[19,'left'],[21,'right'],[23,'left']].forEach(p => { F('stool', p[0], 7); SEAT(p[0], 7, p[1], 'relax', p[0], 8, '앉아서 수다 떨기', 'Sit and chat'); });
+    TOAST('coffee', 18, 3, '커피 내리기', 'Brew coffee', '☕ 아메리카노 완료! 오늘의 연료 충전', '☕ Americano ready! Fuel acquired', '☕', { npcReact:'latte', rko:'제가 내린 거예요. 맛있죠?', ren:'I brewed that. Good, right?' });
+    TOAST('vend', 28, 3, '간식 뽑기', 'Grab a snack', '🍫 초코바 겟! (재고 3개 남음)', '🍫 Choco bar! (3 left in stock)', '🍫');
+    TOAST('water', 30, 3, '물 마시기', 'Drink water', '💧 수분 충전 완료!', '💧 Hydration +100!', '💧');
+    // open desks
+    for (const ry of [12, 15, 18]) for (const dx of [4, 8, 12]) {
+      F('desk', dx, ry); F('chair', dx, ry - 1, { dir:'down', v:'#5561d8' });
+      if (!(dx === 8 && ry === 15)) SEAT(dx, ry - 1, 'down', 'focus', dx + 1, ry - 1, '앉아서 일하기', 'Sit and work');
+    }
+    F('printer', 17, 12); F('shelf', 17, 15); F('wboard', 21, 12);
+    F('plant', 1, 11); F('plant', 1, 20, { v:1 }); F('plant', 26, 13, { v:2 }); F('plant', 28, 20);
+    TOAST('printer', 17, 12, '프린터 고치기', 'Fix the printer', '🖨️ 용지 걸림 해결! 사무실의 영웅 등극', '🖨️ Paper jam fixed! Office hero status', '🛠️');
+    // game corner
+    F('arcade', 33, 12, { v:'#5561d8' }); F('arcade', 35, 12, { v:'#d95f52' });
+    F('tv', 38, 12); F('shelf', 42, 12);
+    F('beanbag', 33, 16, { v:'#e8a33d' }); F('beanbag', 36, 17, { v:'#4fae9e' }); F('beanbag', 39, 16, { v:'#d3699b' });
+    [[33,16],[36,17],[39,16]].forEach(p => SEAT(p[0], p[1], 'down', 'relax', p[0], p[1] + 1, '빈백에 눕기', 'Flop on the beanbag'));
+    F('plant', 44, 11, { v:2 });
+    TOAST('arc1', 33, 12, '한 판 하기', 'Play a round', '🕹️ 도전 시작! 현재 1등: 핑구 99,999점', '🕹️ Game on! Top score: Pingu 99,999', '🎮', { npcReact:'pingu', rko:'옆에서 훈수 좀 둘게요…', ren:'Allow me to backseat-game' });
+    TOAST('arc2', 35, 12, '한 판 하기', 'Play a round', '🕹️ 코인 투입! 오락실 감성 최고', '🕹️ Coin in! Peak arcade vibes', '🎮');
+    TOAST('tvg', 38, 12, 'TV 보기', 'Watch TV', '📺 지금 방영: 「무한 스탠드업」 시즌 4', '📺 Now playing: "Infinite Standup" S4', '📺');
+    // lounge
+    F('tv', 5, 21); F('ctable', 5, 23); F('sofa', 4, 25, { dir:'up' }); F('armchair', 8, 23, { dir:'left' });
+    F('lamp', 2, 22); F('shelf', 12, 21); F('plant', 2, 27); F('plant', 11, 27, { v:1 });
+    SEAT(5, 25, 'up', 'relax', 5, 24, '소파에서 쉬기', 'Chill on the sofa');
+    SEAT(8, 23, 'left', 'relax', 7, 23, '안락의자에 앉기', 'Sink into the armchair');
+    TOAST('tvl', 5, 21, 'TV 보기', 'Watch TV', '📺 재택 브이로그 스트리밍 중…', '📺 Streaming WFH vlogs…', '📺');
+    // lobby
+    F('rdesk', 20, 24); F('sign', 24, 26); F('booth', 40, 22); F('booth', 40, 25);
+    F('cooler', 44, 21); F('plant', 18, 21); F('plant', 44, 28, { v:1 });
+    TOAST('notice', 20, 24, '안내 데스크', 'Front desk', 'ℹ️ 공지: 오후 4시 커피챗 @카페', 'ℹ️ Notice: 4pm coffee chat @café', 'ℹ️');
+    SEAT(40, 23, 'down', 'call', 39, 23, '부스에서 통화하기', 'Take a call in the booth');
+    SEAT(40, 26, 'down', 'call', 39, 26, '부스에서 통화하기', 'Take a call in the booth');
+
+    // furniture solids
+    for (const f of this.furn) {
+      const m = this.FM[f.t];
+      if (m.pass) continue;
+      for (let j = 0; j < m.h; j++) for (let i = 0; i < m.w; i++) {
+        const x = f.x + i, y = f.y + j;
+        if (x >= 0 && y >= 0 && x < W && y < H) this.solid[y * W + x] = 1;
+      }
+    }
+    this.rugs = [
+      { x:3, y:21, w:8, h:6, base:'#4fae9e', bd:'#3d9488', dot:'#5cbcac' },
+      { x:31, y:12, w:12, h:7, base:'#3f4c68', bd:'#5561d8', dot:'#47557a' },
+      { x:36, y:6, w:8, h:3, base:'#83739f', bd:'#75658f', dot:'#8d7dab' }
+    ];
+  }
+
+  // ————— sprites —————
+  mkSpr(wArt, hArt, fn) {
+    const c = this.mk(wArt * 2, hArt * 2);
+    const g = c.getContext('2d');
+    const P = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(Math.round(x*2), Math.round(y*2), Math.round(w*2), Math.round(h*2)); };
+    fn(P, g);
+    return c;
+  }
+  outline(src, col) {
+    const sil = this.mk(src.width, src.height);
+    const sg = sil.getContext('2d');
+    sg.drawImage(src, 0, 0);
+    sg.globalCompositeOperation = 'source-in';
+    sg.fillStyle = col; sg.fillRect(0, 0, sil.width, sil.height);
+    const out = this.mk(src.width, src.height);
+    const og = out.getContext('2d');
+    og.imageSmoothingEnabled = false;
+    og.drawImage(sil, 2, 0); og.drawImage(sil, -2, 0); og.drawImage(sil, 0, 2); og.drawImage(sil, 0, -2);
+    og.drawImage(src, 0, 0);
+    return out;
+  }
+  mirror(c) { const m = this.mk(c.width, c.height); const g = m.getContext('2d'); g.imageSmoothingEnabled = false; g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0); return m; }
+
+  sprFor(f) {
+    const key = f.t + '|' + (f.v || '') + '|' + (f.dir || '');
+    if (this._spr[key]) return this._spr[key];
+    const S = this.shade.bind(this);
+    let img = null;
+    const t = f.t, v = f.v, dir = f.dir || 'down';
+    if (t === 'desk') img = this.mkSpr(32, 26, (P) => {
+      P(2,16,3,8,'#6b4226'); P(27,16,3,8,'#6b4226');
+      P(0,10,32,6,'#c08a4f'); P(0,10,32,2,'#d8a05e'); P(0,15,32,1,'#8a5a30');
+      P(13,8,6,2,'#3a3a4c'); P(11,9,10,1,'#2c2438');
+      P(8,0,16,8,'#2c2438'); P(9,1,14,6,'#79e8d8');
+      P(10,2,6,1,'#2e9c8e'); P(10,4,9,1,'#2e9c8e'); P(10,6,5,1,'#2e9c8e');
+      P(11,12,9,2,'#3a3a4c'); P(24,11,3,3,'#e2574c');
+    });
+    else if (t === 'chair') {
+      const col = v || '#5561d8', cd = S(col, -0.3);
+      const mkc = (d) => this.mkSpr(16, 22, (P) => {
+        if (d === 'down') { P(3,2,10,10,cd); P(4,3,8,8,col); P(3,12,10,4,col); P(3,15,10,2,cd); P(7,17,2,3,'#3a3a4c'); P(4,20,8,2,'#3a3a4c'); }
+        else if (d === 'up') { P(3,6,10,4,col); P(3,9,10,1,cd); P(3,10,10,9,cd); P(4,11,8,7,col); P(7,19,2,1,'#3a3a4c'); P(4,20,8,2,'#3a3a4c'); }
+        else { P(3,8,8,7,col); P(3,14,8,2,cd); P(10,2,3,14,cd); P(10,3,2,12,col); P(6,17,2,3,'#3a3a4c'); P(4,20,7,2,'#3a3a4c'); }
+      });
+      img = dir === 'right' ? this.mirror(mkc('left')) : mkc(dir);
+    }
+    else if (t === 'stool') img = this.mkSpr(16, 16, (P) => { P(4,6,8,3,'#c08a4f'); P(4,9,8,2,'#a5713f'); P(5,11,2,4,'#6b4226'); P(9,11,2,4,'#6b4226'); });
+    else if (t === 'tableBig') img = this.mkSpr(64, 30, (P) => {
+      P(4,20,4,8,'#6b4226'); P(56,20,4,8,'#6b4226');
+      P(2,6,60,12,'#c08a4f'); P(2,6,60,3,'#d8a05e'); P(2,17,60,3,'#8a5a30');
+      P(10,9,10,6,'#4a4a5e'); P(11,7,8,3,'#79e8d8'); P(44,9,10,6,'#4a4a5e'); P(45,7,8,3,'#79e8d8');
+      P(28,10,8,5,'#fff8e8'); P(29,11,6,1,'#b3a68f'); P(29,13,4,1,'#b3a68f');
+    });
+    else if (t === 'counter') img = this.mkSpr(144, 26, (P) => {
+      P(0,6,144,7,'#c08a4f'); P(0,6,144,2,'#d8a05e');
+      P(0,13,144,11,'#8a5a30');
+      for (let i = 0; i < 9; i++) P(i*16+1, 15, 14, 7, i % 2 ? '#7a4c28' : '#946136');
+      P(40,8,3,3,'#e2574c'); P(58,8,3,3,'#4fae9e'); P(120,8,3,3,'#5561d8');
+      P(96,2,10,9,'#3a3a4c'); P(98,4,6,3,'#9fe3a8');
+    });
+    else if (t === 'machine') img = this.mkSpr(16, 20, (P) => {
+      P(2,2,12,13,'#cfd4dc'); P(2,2,12,3,'#9aa2b1'); P(4,6,8,5,'#d94f4f'); P(6,7,4,3,'#241a38');
+      P(6,11,4,1,'#9aa2b1'); P(6,13,4,3,'#fff8e8'); P(2,15,12,2,'#9aa2b1');
+      P(7,0,1,2,'rgba(255,255,255,0.5)'); P(9,1,1,1,'rgba(255,255,255,0.4)');
+    });
+    else if (t === 'fridge') img = this.mkSpr(16, 34, (P) => {
+      P(2,2,12,30,'#cfd4dc'); P(2,2,12,2,'#e8ecf2'); P(2,16,12,1,'#9aa2b1');
+      P(12,6,1,6,'#4a4a5e'); P(12,19,1,6,'#4a4a5e'); P(5,8,2,2,'#e2574c'); P(8,11,2,2,'#4fae9e');
+    });
+    else if (t === 'vending') img = this.mkSpr(16, 34, (P) => {
+      P(1,2,14,30,'#4a6bd8'); P(1,2,14,2,'#6a86e2');
+      P(3,6,7,16,'#cfe8f0');
+      P(4,8,2,2,'#e2574c'); P(7,8,2,2,'#e8a33d'); P(4,12,2,2,'#58b368'); P(7,12,2,2,'#d3699b'); P(4,16,2,2,'#ffd93d'); P(7,16,2,2,'#e2574c');
+      P(11,8,3,6,'#241a38'); P(3,25,10,4,'#241a38');
+    });
+    else if (t === 'cooler') img = this.mkSpr(16, 28, (P) => {
+      P(4,2,8,8,'#bfe8f0'); P(5,3,2,5,'#e8f8fc');
+      P(3,10,10,14,'#cfd4dc'); P(5,14,2,3,'#d94f4f'); P(9,14,2,3,'#5561d8'); P(3,24,10,2,'#9aa2b1');
+    });
+    else if (t === 'sofa') {
+      img = this.mkSpr(48, 26, (P) => {
+        if (dir === 'up') {
+          P(2,4,44,10,'#e8887a'); P(16,4,1,10,'#dd6f5c'); P(31,4,1,10,'#dd6f5c');
+          P(2,12,44,9,'#dd6f5c'); P(2,12,44,2,'#e8988a');
+          P(0,2,4,19,'#c96555'); P(44,2,4,19,'#c96555');
+          P(4,21,3,3,'#6b4226'); P(41,21,3,3,'#6b4226');
+        } else {
+          P(2,2,44,10,'#c96555'); P(3,3,42,8,'#dd6f5c');
+          P(2,12,44,7,'#e8887a'); P(16,12,1,7,'#dd6f5c'); P(31,12,1,7,'#dd6f5c');
+          P(0,2,4,18,'#c96555'); P(44,2,4,18,'#c96555');
+          P(4,20,3,3,'#6b4226'); P(41,20,3,3,'#6b4226');
+        }
+      });
+    }
+    else if (t === 'armchair') {
+      const mka = () => this.mkSpr(16, 24, (P) => {
+        P(2,8,10,8,'#f0b95e'); P(2,14,10,2,'#d89043');
+        P(10,2,5,16,'#d89043'); P(11,3,3,14,'#e8a33d');
+        P(1,6,3,11,'#d89043'); P(3,18,3,3,'#6b4226'); P(10,18,3,3,'#6b4226');
+      });
+      img = dir === 'right' ? this.mirror(mka()) : mka();
+    }
+    else if (t === 'ctable') img = this.mkSpr(32, 16, (P) => {
+      P(3,3,26,6,'#c08a4f'); P(3,3,26,2,'#d8a05e');
+      P(4,9,2,5,'#8a5a30'); P(26,9,2,5,'#8a5a30');
+      P(8,4,7,4,'#58b368'); P(9,5,5,1,'#fff8e8'); P(20,4,3,3,'#e2574c');
+    });
+    else if (t === 'rtable') img = this.mkSpr(16, 22, (P) => {
+      P(2,2,12,8,'#c08a4f'); P(3,3,10,2,'#d8a05e');
+      P(6,10,4,8,'#8a5a30'); P(4,18,8,2,'#6b4226');
+    });
+    else if (t === 'tv') img = this.mkSpr(32, 24, (P) => {
+      P(12,18,8,2,'#3a3a4c'); P(8,20,16,2,'#3a3a4c');
+      P(2,2,28,16,'#241a38'); P(4,4,24,12,'#7ec8e8');
+      P(4,10,24,6,'#58b368'); P(23,6,3,3,'#ffe9b8'); P(8,7,4,1,'#fff8e8');
+    });
+    else if (t === 'plant') img = this.mkSpr(16, 30, (P) => {
+      P(5,22,6,6,'#b06239'); P(5,22,6,2,'#c97a4a');
+      P(7,18,2,4,'#3d6b32');
+      if (v === 1) { P(4,2,8,16,'#4fa15b'); P(3,6,4,8,'#3d8449'); P(9,4,4,9,'#5cb85c'); P(6,0,4,4,'#5cb85c'); }
+      else if (v === 2) { P(3,10,10,8,'#3d8449'); P(2,6,5,8,'#4fa15b'); P(9,5,5,9,'#5cb85c'); P(6,2,4,6,'#4fa15b'); }
+      else { P(3,8,10,10,'#4fa15b'); P(2,11,4,5,'#3d8449'); P(11,10,4,6,'#5cb85c'); P(6,4,5,6,'#5cb85c'); }
+    });
+    else if (t === 'shelf') img = this.mkSpr(32, 34, (P) => {
+      P(0,2,32,30,'#8a5a30'); P(0,2,32,2,'#a5713f');
+      P(2,6,28,8,'#5c3a1e'); P(2,17,28,8,'#5c3a1e');
+      const cols = ['#e2574c','#5561d8','#58b368','#e8a33d','#9b6bd3','#4fae9e'];
+      for (let i = 0; i < 6; i++) { P(3+i*4, 7, 3, 7, cols[i]); P(3+i*4, 18, 3, 7, cols[(i+3)%6]); }
+      P(2,28,28,3,'#a5713f'); P(14,29,4,1,'#6b4226');
+    });
+    else if (t === 'arcade') {
+      const col = v || '#5561d8', cd = S(col, -0.3);
+      img = this.mkSpr(16, 38, (P) => {
+        P(1,6,14,30,col); P(1,6,2,30,cd);
+        P(1,2,14,5,'#241a38'); P(3,3,2,2,'#e2574c'); P(6,3,2,2,'#ffd93d'); P(9,3,2,2,'#58b368'); P(12,3,2,2,'#e8a33d');
+        P(3,10,10,10,'#241a38'); P(4,11,8,8,'#101426');
+        P(6,13,1,1,'#9fe3a8'); P(9,13,1,1,'#9fe3a8'); P(5,14,6,1,'#9fe3a8'); P(5,15,1,1,'#9fe3a8'); P(10,15,1,1,'#9fe3a8'); P(7,17,2,1,'#ffe9b8');
+        P(2,22,12,5,cd); P(5,23,2,2,'#241a38'); P(5,22,2,1,'#e2574c'); P(9,23,2,2,'#ffd93d'); P(12,23,2,2,'#e2574c');
+        P(2,28,12,8,cd); P(6,30,4,4,'#241a38');
+      });
+    }
+    else if (t === 'beanbag') {
+      const col = v || '#e8a33d';
+      img = this.mkSpr(16, 16, (P) => { P(3,6,10,8,col); P(2,8,12,6,col); P(4,4,8,4,S(col,0.15)); P(3,13,10,1,S(col,-0.3)); });
+    }
+    else if (t === 'printer') img = this.mkSpr(16, 20, (P) => {
+      P(2,8,12,9,'#cfd4dc'); P(2,8,12,2,'#e8ecf2');
+      P(4,4,8,4,'#9aa2b1'); P(5,2,6,4,'#fff8e8');
+      P(3,12,10,2,'#241a38'); P(5,13,6,3,'#fff8e8'); P(11,9,2,1,'#58b368'); P(2,17,12,2,'#9aa2b1');
+    });
+    else if (t === 'rdesk') img = this.mkSpr(48, 26, (P) => {
+      P(0,4,48,5,'#c08a4f'); P(0,4,48,2,'#d8a05e');
+      P(0,9,48,13,'#e2574c'); P(0,9,48,2,'#c94b40'); P(0,9,2,13,'#c94b40'); P(46,9,2,13,'#c94b40');
+      P(18,12,12,7,'#fff8e8'); P(23,13,2,1,'#241a38'); P(23,15,2,3,'#241a38');
+      P(38,2,4,2,'#ffd93d'); P(39,1,2,1,'#ffd93d');
+      P(5,0,6,4,'#4fa15b'); P(6,3,4,2,'#b06239');
+    });
+    else if (t === 'sign') img = this.mkSpr(16, 24, (P) => {
+      P(3,6,2,14,'#8a5a30'); P(11,6,2,14,'#8a5a30');
+      P(2,4,12,12,'#fff8e8'); P(2,4,12,1,'#8a5a30'); P(2,15,12,1,'#8a5a30'); P(2,4,1,12,'#8a5a30'); P(13,4,1,12,'#8a5a30');
+      P(6,7,4,4,'#e2574c'); P(10,8,1,2,'#e2574c'); P(6,6,1,1,'rgba(255,255,255,0.6)');
+      P(4,13,8,1,'#241a38');
+    });
+    else if (t === 'booth') img = this.mkSpr(32, 44, (P) => {
+      P(0,0,32,36,'#2f6d5f'); P(0,0,32,4,'#241a38');
+      P(10,1,2,2,'#9fe3a8'); P(14,1,2,2,'#9fe3a8'); P(18,1,2,2,'#58b368');
+      P(3,6,26,8,'#bfe8f0'); P(4,7,10,2,'rgba(255,255,255,0.5)');
+      P(3,14,26,18,'#1f4a40');
+      P(17,22,10,7,'#d95f52'); P(24,18,4,10,'#b34a40');
+      P(6,20,8,6,'#8a5a30'); P(7,18,6,3,'#4a4a5e'); P(8,19,4,1,'#79e8d8');
+      P(0,32,32,4,'#265c50'); P(0,36,32,2,'#1c463c');
+    });
+    else if (t === 'lamp') img = this.mkSpr(16, 30, (P, g) => {
+      P(7,9,2,17,'#4a4a5e'); P(4,26,8,2,'#4a4a5e');
+      P(3,2,10,7,'#ffd98a'); P(3,8,10,1,'#e8b45e'); P(4,3,3,2,'#ffe9b8');
+    });
+    else if (t === 'wboard') img = this.mkSpr(32, 30, (P) => {
+      P(1,1,30,18,'#9aa2b1'); P(3,3,26,14,'#fff8e8');
+      P(5,6,9,1,'#5561d8'); P(5,9,6,1,'#5561d8'); P(5,12,8,1,'#e2574c');
+      P(18,12,3,4,'#4fae9e'); P(22,9,3,7,'#e2574c'); P(26,11,2,5,'#4fae9e');
+      P(6,19,2,8,'#6b4226'); P(24,19,2,8,'#6b4226'); P(5,27,4,2,'#241a38'); P(23,27,4,2,'#241a38');
+    });
+    const o = { img: this.outline(img, '#241a38') };
+    this._spr[key] = o;
+    return o;
+  }
+
+  makeDeco() {
+    const T = this.T;
+    this.deco = this.furn.map(f => {
+      const m = this.FM[f.t];
+      const s = this.sprFor(f);
+      const baseY = (f.y + m.h) * T + (f.oy || 0);
+      return { img: s.img, px: f.x * T, topY: baseY - s.img.height, y: baseY + (f.ys || 0) };
+    });
+  }
+
+  // ————— characters —————
+  drawCharFrame(pal, dir, pose) {
+    const c = this.mk(32, 56), g = c.getContext('2d');
+    const R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x * 2, y * 2, w * 2, h * 2); };
+    const S = this.shade.bind(this);
+    const skin = pal.skin, skinD = S(skin, -0.18);
+    const hair = pal.hair, hairH = S(hair, 0.32), hairD = S(hair, -0.28);
+    const sh = pal.shirt, shH = S(sh, 0.18), shD = S(sh, -0.28);
+    const pn = pal.pants, pnD = S(pn, -0.32);
+    const shoe = '#3a3148', shoeH = '#5c5178';
+    const eye = '#26203a', iris = '#3d55b8';
+    const cap = pal.cap || '#5561d8', capD = S(cap, -0.28);
+    const hood = pal.style === 'hood';
+    const hc = hood ? sh : hair, hcH = hood ? shH : hairH, hcD = hood ? shD : hairD;
+    const sit = pose === 'sit', wa = pose === 'walkA', wb = pose === 'walkB';
+    const dy = sit ? 3 : 0;
+    if (dir === 'down' || dir === 'up') {
+      const back = dir === 'up';
+      if (!sit) {
+        const sL = wa ? 1 : 0, sR = wb ? 1 : 0;
+        R(4, 21, 3, 5 - sL, pn); R(6, 21, 1, 5 - sL, pnD);
+        R(9, 21, 3, 5 - sR, pn); R(9, 21, 1, 5 - sR, pnD);
+        R(3, 26 - sL, 4, 2, shoe); R(3, 26 - sL, 4, 1, shoeH);
+        R(9, 26 - sR, 4, 2, shoe); R(9, 26 - sR, 4, 1, shoeH);
+      } else if (back) {
+        R(4, 22, 8, 2, pnD);
+      } else {
+        R(3, 22, 10, 2, pn); R(3, 23, 10, 1, pnD);
+        R(2, 24, 4, 2, shoe); R(2, 24, 4, 1, shoeH);
+        R(10, 24, 4, 2, shoe); R(10, 24, 4, 1, shoeH);
+      }
+      const by = 13 + dy, bh2 = sit ? 6 : 8;
+      R(3, by, 10, bh2, sh); R(3, by, 10, 1, shH); R(3, by + bh2 - 2, 10, 1, shD);
+      R(3, by + bh2 - 1, 10, 1, '#3a3148'); R(7, by + bh2 - 1, 2, 1, '#c9a227');
+      if (!back) {
+        if (hood) {
+          R(7, by, 2, 1, skin);
+          R(7, by + 1, 1, bh2 - 2, shD);
+          R(6, by + 1, 1, 3, '#ffd93d'); R(9, by + 1, 1, 3, '#ffd93d');
+        } else {
+          R(6, by, 4, 1, '#fff8e8');
+          R(7, by + 1, 1, bh2 - 3, shD);
+          R(8, by + 2, 1, 1, '#ffe9b8'); R(8, by + 4, 1, 1, '#ffe9b8');
+        }
+      }
+      const aL = sit ? 1 : wa ? 1 : wb ? -1 : 0;
+      const aR = sit ? 1 : wa ? -1 : wb ? 1 : 0;
+      R(1, by + 1 + aL, 2, 4, sh); R(1, by + 1 + aL, 1, 4, shD);
+      R(1, by + 5 + aL, 2, 1, S(sh, -0.4)); R(1, by + 6 + aL, 2, 2, skin);
+      R(13, by + 1 + aR, 2, 4, sh); R(14, by + 1 + aR, 1, 4, shD);
+      R(13, by + 5 + aR, 2, 1, S(sh, -0.4)); R(13, by + 6 + aR, 2, 2, skin);
+      const hy = 1 + dy;
+      const circ = (col) => { R(4, hy, 8, 12, col); R(2, hy + 2, 12, 8, col); R(3, hy + 1, 10, 10, col); };
+      if (back) {
+        circ(hc);
+        R(3, hy + 9, 10, 2, hcD); R(4, hy + 11, 8, 1, hcD);
+        R(5, hy + 1, 4, 1, hcH); R(4, hy + 2, 2, 1, hcH);
+        R(6, hy + 12, 4, 1, skin);
+        if (hood) { R(7, hy + 2, 1, 9, hcD); R(7, hy - 1, 2, 1, hc); }
+        if (pal.style === 'long') { R(2, hy + 10, 12, 3, hair); R(3, hy + 13, 10, 1, hair); R(2, hy + 12, 12, 1, hairD); }
+        if (pal.style === 'bun') { R(6, hy - 1, 4, 1, hair); R(7, hy - 2, 2, 1, hair); }
+        if (pal.style === 'spiky') { R(5, hy - 1, 2, 1, hair); R(9, hy - 1, 2, 1, hair); }
+        if (pal.style === 'cap') { R(4, hy, 8, 1, cap); R(3, hy + 1, 10, 1, cap); R(2, hy + 2, 12, 3, cap); R(2, hy + 5, 12, 1, capD); }
+      } else {
+        circ(skin);
+        R(4, hy + 11, 8, 1, skinD);
+        R(4, hy, 8, 1, hc); R(3, hy + 1, 10, 1, hc); R(2, hy + 2, 12, 3, hc);
+        R(2, hy + 5, 2, 3, hc); R(12, hy + 5, 2, 3, hc);
+        R(5, hy + 1, 4, 1, hcH); R(4, hy + 2, 2, 1, hcH);
+        if (hood) { R(3, hy + 4, 10, 1, hcD); R(7, hy - 1, 2, 1, hc); }
+        if (pal.style === 'spiky') { R(4, hy + 5, 1, 1, hair); R(7, hy + 5, 2, 1, hair); R(11, hy + 5, 1, 1, hair); R(5, hy - 1, 2, 1, hair); R(9, hy - 1, 2, 1, hair); }
+        if (pal.style === 'long') { R(1, hy + 4, 2, 10, hair); R(13, hy + 4, 2, 10, hair); R(1, hy + 12, 2, 2, hairD); R(13, hy + 12, 2, 2, hairD); }
+        if (pal.style === 'bun') { R(6, hy - 1, 4, 1, hair); R(7, hy - 2, 2, 1, hair); }
+        if (pal.style === 'cap') {
+          R(4, hy, 8, 1, cap); R(3, hy + 1, 10, 1, cap); R(2, hy + 2, 12, 3, cap);
+          R(1, hy + 5, 14, 1, capD); R(7, hy, 2, 1, capD);
+          R(2, hy + 6, 2, 2, hair); R(12, hy + 6, 2, 2, hair);
+          R(5, hy + 1, 4, 1, S(cap, 0.22));
+        }
+        const eyY = pal.style === 'cap' ? hy + 6 : hy + 5;
+        R(5, eyY, 2, 1, eye); R(5, eyY + 1, 2, 1, iris);
+        R(9, eyY, 2, 1, eye); R(9, eyY + 1, 2, 1, iris);
+        R(7, eyY + 3, 2, 1, S(skin, -0.3));
+      }
+    } else {
+      if (!sit) {
+        const bk = wb ? 1 : 0, fr = wa ? 1 : 0;
+        R(8, 21, 3, 5 - bk, pnD);
+        R(9, 26 - bk, 4, 2, S(shoe, -0.2));
+        R(5, 21, 3, 5 - fr, pn); R(7, 21, 1, 5 - fr, pnD);
+        R(3, 26 - fr, 5, 2, shoe); R(3, 26 - fr, 5, 1, shoeH);
+      } else {
+        R(8, 22, 2, 4, pnD);
+        R(3, 22, 6, 3, pn); R(3, 24, 6, 1, pnD);
+        R(2, 25, 4, 2, shoe); R(2, 25, 4, 1, shoeH);
+      }
+      const by = 13 + dy, bh2 = sit ? 6 : 8;
+      R(4, by, 8, bh2, sh); R(4, by, 8, 1, shH); R(4, by + bh2 - 2, 8, 1, shD);
+      R(4, by + bh2 - 1, 8, 1, '#3a3148'); R(6, by + bh2 - 1, 2, 1, '#c9a227');
+      if (hood) { R(5, by + 1, 1, 3, '#ffd93d'); } else { R(5, by, 3, 1, '#fff8e8'); }
+      const sw2 = sit ? 1 : wa ? 1 : wb ? -1 : 0;
+      R(6, by + 1 + sw2, 3, 4, sh); R(6, by + 1 + sw2, 1, 4, shD);
+      R(6, by + 5 + sw2, 3, 1, S(sh, -0.4)); R(6, by + 6 + sw2, 3, 2, skin);
+      if (pal.bag) {
+        R(4, by, 6, 1, '#c9a227');
+        R(9, by + 4, 4, 4, '#ffd93d'); R(9, by + 4, 4, 1, '#f2d968'); R(9, by + 7, 4, 1, '#c9a227');
+      }
+      const hy = 1 + dy;
+      R(4, hy, 8, 12, skin); R(2, hy + 2, 12, 8, skin); R(3, hy + 1, 10, 10, skin);
+      R(4, hy + 11, 6, 1, skinD);
+      R(1, hy + 6, 1, 2, skin);
+      R(4, hy, 8, 1, hc); R(3, hy + 1, 10, 1, hc); R(2, hy + 2, 12, 3, hc);
+      R(9, hy + 5, 5, 5, hc); R(9, hy + 10, 3, 2, hc); R(12, hy + 10, 1, 1, hc);
+      R(2, hy + 5, 1, 2, hc);
+      R(9, hy + 10, 3, 1, hcD);
+      R(5, hy + 1, 4, 1, hcH);
+      if (hood) { R(8, hy - 1, 2, 1, hc); }
+      if (pal.style === 'long') { R(12, hy + 4, 3, 10, hair); R(12, hy + 12, 3, 2, hairD); }
+      if (pal.style === 'bun') { R(11, hy - 1, 4, 1, hair); R(12, hy - 2, 2, 1, hair); }
+      if (pal.style === 'spiky') { R(5, hy - 1, 2, 1, hair); R(9, hy - 1, 2, 1, hair); R(2, hy + 5, 1, 1, hair); }
+      if (pal.style === 'cap') {
+        R(4, hy, 8, 1, cap); R(3, hy + 1, 10, 1, cap); R(2, hy + 2, 12, 3, cap);
+        R(0, hy + 5, 8, 1, capD); R(5, hy, 2, 1, capD);
+        R(5, hy + 1, 4, 1, S(cap, 0.22));
+      }
+      const eyY = pal.style === 'cap' ? hy + 6 : hy + 5;
+      R(3, eyY, 2, 1, eye); R(3, eyY + 1, 2, 1, iris);
+      R(2, eyY + 3, 2, 1, S(skin, -0.3));
+      R(5, eyY + 2, 2, 1, 'rgba(240,120,120,0.5)');
+    }
+    return c;
+  }
+
+  mkSet(pal) {
+    const f = (d, p) => this.outline(this.drawCharFrame(pal, d, p), '#231b33');
+    const Li = f('left','idle'), La = f('left','walkA'), Lb = f('left','walkB'), Ls = f('left','sit');
+    return {
+      down: [f('down','idle'), f('down','walkA'), f('down','walkB')],
+      up: [f('up','idle'), f('up','walkA'), f('up','walkB')],
+      left: [Li, La, Lb],
+      right: [this.mirror(Li), this.mirror(La), this.mirror(Lb)],
+      sit: { down: f('down','sit'), up: f('up','sit'), left: Ls, right: this.mirror(Ls) }
+    };
+  }
+
+  buildEntities() {
+    const T = this.T;
+    this.player = { id:'me', ko:'나', en:'Me', col:'#e2574c', x:22.5*T, y:26.5*T, dir:'down', moving:false, animT:0, sitting:null };
+    const palMe = { skin:'#f0c8a0', hair:'#2c2438', style:'spiky', shirt:'#e2574c', pants:'#3d4a6b' };
+    this.npcs = this.NPCDEF.map(d => {
+      const n = Object.assign({}, d);
+      if (d.mode === 'sit') { n.x = (d.seat.x + 0.5) * T; n.y = (d.seat.y + 0.85) * T; n.dir = d.seat.dir; }
+      else { n.x = (d.tx + 0.5) * T; n.y = (d.ty + 0.5) * T; n.dir = d.dir || 'down'; }
+      n.moving = false; n.animT = 0; n.sp = 52 + Math.random() * 14; n.wait = Math.random() * 2; n.target = null;
+      n.pi = (Math.random() * 3) | 0; n.nextTalk = Date.now() + 6000 + Math.random() * 16000;
+      n.lines = this.LINES[d.pool] || this.LINES.reply;
+      return n;
+    });
+    this.npcById = {};
+    this.npcs.forEach(n => { this.npcById[n.id] = n; });
+    this.charSpr = { me: this.mkSet(palMe) };
+    this.npcs.forEach(n => { this.charSpr[n.id] = this.mkSet({ skin:n.skin, hair:n.hair, style:n.style, shirt:n.shirt, pants:n.pants, cap:n.cap, bag:n.bag }); });
+    this.makeDeco();
+    this._artV = 7;
+  }
+
+  makeAvatars() {
+    this.avatars = {};
+    const all = [this.player].concat(this.npcs);
+    for (const e of all) {
+      const sp = this.charSpr[e.id].down[0];
+      const c = this.mk(48, 48), g = c.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      g.fillStyle = this.shade(e.col, 0.55); g.fillRect(0, 0, 48, 48);
+      g.fillStyle = this.shade(e.col, 0.42);
+      for (let y = 0; y < 48; y += 8) g.fillRect(0, y, 48, 4);
+      g.drawImage(sp, 4, 2, 24, 24, 0, 0, 48, 48);
+      this.avatars[e.id] = c.toDataURL();
+    }
+  }
+
+  // ————— static map layer —————
+  buildStatic() {
+    const T = this.T, W = this.MW, H = this.MH;
+    if (!this._staticC) this._staticC = this.mk(W * T, H * T);
+    const g = this._staticC.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, W * T, H * T);
+    // floors
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (this.wall[y * W + x] === 1) continue;
+      const z = this.zoneAt(x, y), px = x * T, py = y * T;
+      if (z === 'cafe') { g.fillStyle = (x + y) % 2 ? '#ead9b5' : '#ddc79d'; g.fillRect(px, py, T, T); g.fillStyle = 'rgba(0,0,0,0.05)'; g.fillRect(px, py + T - 2, T, 2); }
+      else if (z === 'meeting') { g.fillStyle = '#62a397'; g.fillRect(px, py, T, T); if ((x + y) % 2) { g.fillStyle = '#58978c'; g.fillRect(px + 14, py + 14, 4, 4); } }
+      else if (z === 'focus') { g.fillStyle = '#8f7fb0'; g.fillRect(px, py, T, T); if ((x + y) % 2) { g.fillStyle = '#83739f'; g.fillRect(px + 14, py + 14, 4, 4); } }
+      else if (z === 'game') { g.fillStyle = '#4f5d7d'; g.fillRect(px, py, T, T); if ((x + y) % 2) { g.fillStyle = '#475572'; g.fillRect(px + 14, py + 14, 4, 4); } }
+      else {
+        g.fillStyle = ((x * 7 + y * 13) % 5 === 0) ? '#c9985c' : '#cfa15f'; g.fillRect(px, py, T, T);
+        g.fillStyle = '#b8894e'; g.fillRect(px, py + T - 2, T, 2);
+        g.fillStyle = 'rgba(122,84,40,0.35)'; g.fillRect(px + ((y % 2) ? 6 : 22), py, 2, T);
+      }
+    }
+    // rugs
+    for (const r of this.rugs) {
+      const px = r.x * T + 6, py = r.y * T + 6, w = r.w * T - 12, h = r.h * T - 12;
+      g.fillStyle = r.bd; g.fillRect(px, py, w, h);
+      g.fillStyle = r.base; g.fillRect(px + 6, py + 6, w - 12, h - 12);
+      g.fillStyle = r.dot;
+      for (let yy = py + 16; yy < py + h - 16; yy += 24) for (let xx = px + 16; xx < px + w - 16; xx += 24) g.fillRect(xx, yy, 4, 4);
+    }
+    // door mats
+    const mat = (x, y, w, col) => { g.fillStyle = '#241a38'; g.fillRect(x * T + 2, y * T + 6, w * T - 4, 20); g.fillStyle = col; g.fillRect(x * T + 4, y * T + 8, w * T - 8, 16); };
+    mat(7, 10, 2, '#62a397'); mat(39, 10, 2, '#83739f'); mat(21, 28, 4, '#d95f52');
+    // walls
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const v = this.wall[y * W + x]; if (!v) continue;
+      const px = x * T, py = y * T;
+      if (v === 1) {
+        const face = (y + 1 < H) && this.wall[(y + 1) * W + x] === 0;
+        if (face) {
+          g.fillStyle = '#7e6291'; g.fillRect(px, py, T, T);
+          g.fillStyle = '#6e5482'; g.fillRect(px, py + 10, T, 2); g.fillRect(px, py + 20, T, 2);
+          g.fillRect(px + 15, py + 2, 2, 8); g.fillRect(px + 7, py + 12, 2, 8); g.fillRect(px + 23, py + 12, 2, 8);
+          g.fillStyle = '#55416b'; g.fillRect(px, py, T, 4);
+          g.fillStyle = '#3a2c4e'; g.fillRect(px, py + T - 6, T, 6);
+        } else {
+          g.fillStyle = '#55416b'; g.fillRect(px, py, T, T);
+          g.fillStyle = '#4a3760'; g.fillRect(px, py + T - 2, T, 2);
+        }
+      } else {
+        const vert = (y > 0 && this.wall[(y - 1) * W + x] === 2) || (y + 1 < H && this.wall[(y + 1) * W + x] === 2);
+        if (vert) {
+          g.fillStyle = 'rgba(196,235,240,0.55)'; g.fillRect(px + 10, py, 12, T);
+          g.fillStyle = '#241a38'; g.fillRect(px + 8, py, 3, T); g.fillRect(px + 21, py, 3, T);
+        } else {
+          g.fillStyle = 'rgba(196,235,240,0.55)'; g.fillRect(px, py + 8, T, 14);
+          g.fillStyle = '#241a38'; g.fillRect(px, py + 4, T, 4); g.fillRect(px, py + 22, T, 4);
+          if (x % 3 === 0) { g.fillStyle = '#241a38'; g.fillRect(px, py + 2, 4, 26); }
+        }
+      }
+    }
+    // windows
+    for (const wx of [7, 11, 14, 27, 31, 36, 41]) {
+      const px = wx * T, py = T;
+      g.fillStyle = '#3a2c4e'; g.fillRect(px + 2, py + 2, 60, 26);
+      g.fillStyle = '#9edbe8'; g.fillRect(px + 5, py + 5, 54, 20);
+      g.fillStyle = '#c8eef4'; g.fillRect(px + 5, py + 15, 54, 10);
+      g.fillStyle = '#ffffff'; g.fillRect(px + 10, py + 8, 10, 3); g.fillRect(px + 34, py + 12, 12, 3);
+      g.fillStyle = '#3a2c4e'; g.fillRect(px + 30, py + 5, 3, 20); g.fillRect(px + 5, py + 14, 54, 2);
+      g.fillStyle = '#241a38'; g.fillRect(px + 2, py + 26, 60, 3);
+    }
+    // wall art / signs
+    const drawBoard = (x, w, bg, bd) => { const px = x * T; g.fillStyle = '#241a38'; g.fillRect(px + 3, 10, w * T - 6, 42); g.fillStyle = bg; g.fillRect(px + 6, 13, w * T - 12, 36); if (bd) { g.fillStyle = bd; g.fillRect(px + 6, 13, w * T - 12, 3); g.fillRect(px + 6, 46, w * T - 12, 3); } };
+    // main sign
+    drawBoard(20, 6, '#241a38', '#e2574c');
+    g.font = '19px Galmuri11, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#8ff0e0'; g.fillText('★ 재택타운 ★', 23 * T, 27);
+    g.font = '10px Galmuri9, monospace'; g.fillStyle = '#ffb64c'; g.fillText('WFH TOWN · REMOTE WORKERS CLUB', 23 * T, 43);
+    // cafe neon
+    g.fillStyle = '#241a38'; g.fillRect(17 * T + 2, 14, 60, 30);
+    g.font = '13px Galmuri11, monospace'; g.fillStyle = '#ffb64c'; g.fillText('☕ CAFE', 18 * T - 1, 30);
+    // meeting whiteboard
+    g.fillStyle = '#8a5a30'; g.fillRect(3 * T - 4, 12, 104, 38);
+    g.fillStyle = '#fff8e8'; g.fillRect(3 * T, 16, 96, 30);
+    g.fillStyle = '#5561d8'; g.fillRect(3 * T + 8, 22, 34, 2); g.fillRect(3 * T + 8, 28, 24, 2);
+    g.fillStyle = '#e2574c'; g.fillRect(3 * T + 56, 30, 7, 12); g.fillStyle = '#4fae9e'; g.fillRect(3 * T + 66, 24, 7, 18); g.fillStyle = '#e2574c'; g.fillRect(3 * T + 76, 34, 7, 8);
+    // tomato poster
+    g.fillStyle = '#241a38'; g.fillRect(38 * T + 2, 12, 60, 38);
+    g.fillStyle = '#fff8e8'; g.fillRect(38 * T + 5, 15, 54, 32);
+    g.fillStyle = '#e2574c'; g.fillRect(38 * T + 22, 24, 20, 14); g.fillRect(38 * T + 19, 27, 26, 8);
+    g.fillStyle = '#58b368'; g.fillRect(38 * T + 29, 20, 6, 5);
+    g.font = '9px Galmuri9, monospace'; g.fillStyle = '#241a38'; g.fillText('FOCUS 25:00', 38 * T + 32, 44);
+    // clock
+    g.fillStyle = '#241a38'; g.fillRect(30 * T + 4, 14, 24, 24);
+    g.fillStyle = '#fff8e8'; g.fillRect(30 * T + 6, 16, 20, 20);
+    g.fillStyle = '#241a38'; g.fillRect(30 * T + 15, 20, 2, 7); g.fillRect(30 * T + 16, 26, 6, 2);
+    // game poster
+    g.fillStyle = '#241a38'; g.fillRect(33 * T + 2, 12, 60, 38);
+    g.fillStyle = '#9fe3a8';
+    g.fillRect(33 * T + 14, 18, 4, 4); g.fillRect(33 * T + 26, 18, 4, 4); g.fillRect(33 * T + 10, 24, 24, 4); g.fillRect(33 * T + 10, 28, 4, 4); g.fillRect(33 * T + 30, 28, 4, 4);
+    g.font = '10px Galmuri9, monospace'; g.fillStyle = '#ffe9b8'; g.fillText('GAME ON', 33 * T + 44, 42);
+    // entrance doors (top view on bottom wall)
+    g.fillStyle = '#8a5a30'; g.fillRect(21 * T + 2, 29 * T + 4, 2 * T - 4, 24); g.fillRect(23 * T + 2, 29 * T + 4, 2 * T - 4, 24);
+    g.fillStyle = '#ffd93d'; g.fillRect(23 * T - 8, 29 * T + 12, 4, 4); g.fillRect(23 * T + 4, 29 * T + 12, 4, 4);
+    g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    // minimap base
+    this.buildMiniBase();
+  }
+
+  buildMiniBase() {
+    const W = this.MW, H = this.MH, s = 4;
+    if (!this._miniBase) this._miniBase = this.mk(W * s, H * s);
+    const g = this._miniBase.getContext('2d');
+    const zc = { meeting:'#4f8b80', focus:'#75658f', cafe:'#c4b28c', game:'#43506b', work:'#a2825a', lounge:'#8f7757', hall:'#95795b' };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const w = this.wall[y * W + x];
+      if (w === 1) g.fillStyle = '#100b20';
+      else if (w === 2) g.fillStyle = '#8fd8ea';
+      else g.fillStyle = zc[this.zoneAt(x, y)] || '#95795b';
+      g.fillRect(x * s, y * s, s, s);
+    }
+  }
+
+  // ————— input —————
+  onKey = (ev) => {
+    const k = (ev.key || '').toLowerCase();
+    if (ev.type === 'keydown' && this.state.showWelcome) this.setState({ showWelcome: false });
+    if (this.typing) return;
+    if (ev.type === 'keydown') {
+      if (['arrowup','arrowdown','arrowleft','arrowright',' '].indexOf(k) >= 0) ev.preventDefault();
+      if (k === 'e') { this.tryInteract(); return; }
+      if (k.length === 1 && k >= '1' && k <= '6') { this.playerEmote(k.charCodeAt(0) - 49); return; }
+      if (k === 'enter') {
+        ev.preventDefault();
+        this.setState({ panelOpen: true, tab: 'chat', unread: 0 });
+        this.after(80, () => { const el = this.chatInputRef.current; if (el) el.focus(); });
+        return;
+      }
+      this.keys.add(k);
+    } else {
+      this.keys.delete(k);
+    }
+  };
+  onWinBlur = () => { if (this.keys) this.keys.clear(); };
+
+  // ————— actions —————
+  toggleMic = () => this.setState(s => ({ micOn: !s.micOn }));
+  toggleCam = () => this.setState(s => ({ camOn: !s.camOn }));
+  toggleEmoji = () => this.setState(s => ({ emojiOpen: !s.emojiOpen }));
+  openChatTab = () => this.setState(s => ({ panelOpen: !(s.panelOpen && s.tab === 'chat'), tab: 'chat', unread: 0 }));
+  openPeopleTab = () => this.setState(s => ({ panelOpen: !(s.panelOpen && s.tab === 'people'), tab: 'people' }));
+  closePanel = () => this.setState({ panelOpen: false });
+  toggleLang = () => this.setState(s => ({ lang: s.lang === 'ko' ? 'en' : 'ko' }));
+  showHelp = () => this.setState({ showWelcome: true });
+  dismissWelcome = () => this.setState({ showWelcome: false });
+  onChatChange = (e) => this.setState({ chatDraft: e.target.value });
+  onChatKey = (e) => { if (e.key === 'Enter') this.sendChat(); if (e.key === 'Escape') e.target.blur(); };
+  onChatFocus = () => { this.typing = true; if (this.keys) this.keys.clear(); };
+  onChatBlur = () => { this.typing = false; };
+
+  playerEmote = (i) => {
+    const ch = this.EMOJI[i];
+    if (!ch || !this.player) return;
+    this.emotes.push({ e: this.player, ch, born: Date.now() });
+    if (this.state.emojiOpen) this.setState({ emojiOpen: false });
+    const p = this.player;
+    this.activeNpcs().forEach(n => {
+      if (Math.hypot(n.x - p.x, n.y - p.y) < 4.5 * this.T && Math.random() < 0.45) {
+        this.after(400 + Math.random() * 900, () => this.emotes.push({ e: n, ch, born: Date.now() }));
+      }
+    });
+  };
+
+  toast(ko, en) {
+    const id = this.mid++;
+    this.setState(s => ({ toasts: [...s.toasts.slice(-2), { id, ko, en }] }));
+    this.after(2600, () => this.setState(s => ({ toasts: s.toasts.filter(t => t.id !== id) })));
+  }
+
+  pushMsg(m) {
+    this.setState(s => {
+      const closed = !(s.panelOpen && s.tab === 'chat');
+      return { messages: [...s.messages.slice(-59), m], unread: (!m.mine && closed) ? s.unread + 1 : s.unread };
+    });
+  }
+
+  say(n, line) {
+    n.bubble = { ko: line[0], en: line[1], until: Date.now() + 4000 };
+    this.pushMsg({ id: this.mid++, nameKo: n.ko, nameEn: n.en, col: n.col, ko: line[0], en: line[1], time: this.tstr() });
+  }
+  npcSay(n) { const line = n.lines[n.pi++ % n.lines.length]; this.say(n, line); }
+
+  sendChat = () => {
+    const txt = (this.state.chatDraft || '').trim();
+    if (!txt || !this.player) return;
+    const p = this.player;
+    p.bubble = { ko: txt, en: txt, until: Date.now() + 4000 };
+    this.pushMsg({ id: this.mid++, mine: true, nameKo: '나', nameEn: 'Me', col: '#e2574c', ko: txt, en: txt, time: this.tstr() });
+    this.setState({ chatDraft: '' });
+    if (Math.random() < 0.65) {
+      const cands = this.activeNpcs().filter(n => Math.hypot(n.x - p.x, n.y - p.y) < 6 * this.T);
+      const n = cands.length ? cands[(Math.random() * cands.length) | 0] : null;
+      if (n) this.after(900 + Math.random() * 1400, () => this.say(n, this.pick(this.LINES.reply)));
+    }
+  };
+
+  tryInteract = () => {
+    const p = this.player; if (!p) return;
+    if (p.sitting) { p.x = p.sitting.ex; p.y = p.sitting.ey; p.sitting = null; return; }
+    const it = this.promptTarget; if (!it) return;
+    const T = this.T;
+    if (it.act === 'sit') {
+      p.sitting = { kind: it.kind, ex: (it.ex + 0.5) * T, ey: (it.ey + 0.5) * T };
+      p.x = (it.sx + 0.5) * T; p.y = (it.sy + 0.85) * T; p.dir = it.sdir; p.moving = false;
+    } else if (it.act === 'toast') {
+      this.toast(it.tko, it.ten);
+      if (it.emote) this.emotes.push({ e: p, ch: it.emote, born: Date.now() });
+      if (it.npcReact && this.npcById[it.npcReact] && this.isActive(this.npcById[it.npcReact])) {
+        const n = this.npcById[it.npcReact];
+        this.after(700, () => { n.bubble = { ko: it.rko, en: it.ren, until: Date.now() + 3400 }; });
+      }
+    }
+  };
+
+  // ————— simulation —————
+  solidPx(px, py) {
+    const T = this.T, tx = (px / T) | 0, ty = (py / T) | 0;
+    if (tx < 0 || ty < 0 || tx >= this.MW || ty >= this.MH) return true;
+    return this.solid[ty * this.MW + tx] === 1;
+  }
+  moveEnt(e, dx, dy) {
+    const free = (nx, ny) => !(this.solidPx(nx - 8, ny - 6) || this.solidPx(nx + 8, ny - 6) || this.solidPx(nx - 8, ny) || this.solidPx(nx + 8, ny));
+    const nx = e.x + dx; if (free(nx, e.y)) e.x = nx;
+    const ny = e.y + dy; if (free(e.x, ny)) e.y = ny;
+  }
+
+  updatePlayer(dt) {
+    const p = this.player, k = this.keys;
+    let dx = 0, dy = 0;
+    if (k.has('a') || k.has('arrowleft')) dx--;
+    if (k.has('d') || k.has('arrowright')) dx++;
+    if (k.has('w') || k.has('arrowup')) dy--;
+    if (k.has('s') || k.has('arrowdown')) dy++;
+    if (p.sitting) { if (dx || dy) { p.x = p.sitting.ex; p.y = p.sitting.ey; p.sitting = null; } else return; }
+    if (!dx && !dy) { p.moving = false; return; }
+    const m = dx && dy ? 0.7071 : 1;
+    const pr = this.props || {};
+    const sp = (pr.playerSpeed || 3.4) * this.T;
+    this.moveEnt(p, dx * m * sp * dt, dy * m * sp * dt);
+    p.dir = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'right' : dx < 0 ? 'left' : p.dir) : (dy > 0 ? 'down' : 'up');
+    p.moving = true; p.animT += dt;
+  }
+
+  pickTarget(n) {
+    for (let i = 0; i < 10; i++) {
+      const r = n.roam[(Math.random() * n.roam.length) | 0];
+      const x = r.x + ((Math.random() * r.w) | 0), y = r.y + ((Math.random() * r.h) | 0);
+      if (!this.solid[y * this.MW + x]) { n.target = { x: (x + 0.5) * this.T, y: (y + 0.5) * this.T }; return; }
+    }
+    n.wait = 1;
+  }
+
+  updateNpc(n, dt, now) {
+    if (n.mode === 'wander') {
+      if (n.wait > 0) { n.wait -= dt; n.moving = false; }
+      else if (!n.target) this.pickTarget(n);
+      else {
+        const dx = n.target.x - n.x, dy = n.target.y - n.y;
+        if (Math.abs(dx) < 3 && Math.abs(dy) < 3) { n.target = null; n.wait = 1.5 + Math.random() * 3.5; n.moving = false; }
+        else {
+          let mx = 0, my = 0;
+          if (Math.abs(dx) > 3) mx = Math.sign(dx); else my = Math.sign(dy);
+          const ox = n.x, oy = n.y;
+          this.moveEnt(n, mx * n.sp * dt, my * n.sp * dt);
+          if (Math.abs(n.x - ox) < 0.05 && Math.abs(n.y - oy) < 0.05) {
+            this.moveEnt(n, my ? Math.sign(dx || 1) * n.sp * dt : 0, mx ? Math.sign(dy || 1) * n.sp * dt : 0);
+            n.stuck = (n.stuck || 0) + dt;
+            if (n.stuck > 0.8) { n.stuck = 0; n.target = null; n.wait = 0.5; }
+          } else {
+            n.stuck = 0; n.moving = true; n.animT += dt;
+            n.dir = mx ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
+          }
+        }
+      }
+    }
+    if (now >= n.nextTalk) {
+      n.nextTalk = now + (n.talk[0] + Math.random() * n.talk[1]) * 1000;
+      if (this.chatterOn() && now - this.bootAt > 4000) this.npcSay(n);
+    }
+  }
+
+  syncUI(now) {
+    if (now - this.lastSync < 140) return;
+    this.lastSync = now;
+    const p = this.player, T = this.T;
+    const tx = (p.x / T) | 0, ty = (p.y / T) | 0;
+    const zone = this.zoneAt(tx, ty);
+    let best = null, bd = 1e9;
+    if (!p.sitting || p.sitting.kind === 'x') { /* keep prompt off while sitting */ }
+    if (!p.sitting) {
+      for (const it of this.inters) {
+        const d = Math.hypot((it.x + 0.5) * T - p.x, (it.y + 0.5) * T - (p.y - 8));
+        if (d < it.r * T && d < bd) { bd = d; best = it; }
+      }
+    }
+    this.promptTarget = best;
+    let near = [];
+    if (zone !== 'meeting') {
+      near = this.activeNpcs().filter(n => !n.noCall && Math.hypot(n.x - p.x, n.y - p.y) < 2.4 * T).slice(0, 3);
+      near.forEach(n => {
+        if (now - (n.lastGreet || 0) > 30000) { n.lastGreet = now; if (this.chatterOn() && Math.random() < 0.7) { const l = this.pick(this.LINES.greet); n.bubble = { ko: l[0], en: l[1], until: now + 3200 }; } }
+      });
+    }
+    let meet = [];
+    if (zone === 'meeting') meet = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'meeting');
+    const focusEnts = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'focus');
+    const myStatus = p.sitting ? p.sitting.kind : zone === 'meeting' ? 'meeting' : zone === 'focus' ? 'pomo' : 'online';
+    const pl = Math.max(0, Math.ceil((this.pomo.end - now) / 1000));
+    const sig = JSON.stringify([zone, best && best.id, near.map(n => n.id), meet.map(n => n.id), focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), this.pomo.phase]);
+    if (sig !== this.uiSig) {
+      this.uiSig = sig;
+      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, near: near.map(n => n.id), meet: meet.map(n => n.id), focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: this.pomo.phase, myStatus } });
+    }
+    if (zone !== this.lastZone) {
+      if (this.lastZone !== null && zone !== 'hall' && now - this.bootAt > 2500) {
+        this.toast('📍 ' + this.I18N.ko['z_' + zone], '📍 ' + this.I18N.en['z_' + zone]);
+      }
+      this.lastZone = zone;
+    }
+  }
+
+  tick() {
+    const now = Date.now();
+    if (this._artV !== 7 && this.player) {
+      this._artV = 7; this._spr = {};
+      this.charSpr = { me: this.mkSet({ skin: '#f0c8a0', hair: '#2c2438', style: 'spiky', shirt: '#e2574c', pants: '#3d4a6b' }) };
+      this.npcs.forEach(n => { this.charSpr[n.id] = this.mkSet({ skin: n.skin, hair: n.hair, style: n.style, shirt: n.shirt, pants: n.pants, cap: n.cap, bag: n.bag }); });
+      this.makeDeco(); this.makeAvatars(); this.forceUpdate();
+    }
+    const dt = Math.min(0.05, (now - (this._lt || now)) / 1000);
+    this._lt = now;
+    if (this.player) {
+      this.updatePlayer(dt);
+      for (const n of this.activeNpcs()) this.updateNpc(n, dt, now);
+      if (now > this.pomo.end) {
+        const f = this.pomo.phase === 'focus';
+        this.pomo = { phase: f ? 'break' : 'focus', end: now + (f ? 5 : 25) * 60000 };
+        if (this.state.ui.zone === 'focus') this.toast(f ? '🍅 세션 끝! 5분 휴식하세요' : '🍅 다시 집중 시간!', f ? '🍅 Session done! Take 5' : '🍅 Focus time again!');
+      }
+      this.syncUI(now);
+    }
+    this.draw(now);
+    if (now - this.lastMini > 200) { this.lastMini = now; this.drawMini(now); }
+  }
+
+  // ————— render —————
+  resize = () => {
+    const cv = this.canvasRef.current;
+    if (!cv || !cv.parentElement) return;
+    const r = cv.parentElement.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = dpr;
+    cv.width = Math.max(1, Math.round(r.width * dpr));
+    cv.height = Math.max(1, Math.round(r.height * dpr));
+  };
+
+  draw(now) {
+    const cv = this.canvasRef.current;
+    if (!cv || !this._staticC || !this.player) return;
+    const g = cv.getContext('2d');
+    const dpr = this.dpr || 1;
+    const Z = 2;
+    const vw = cv.width / (dpr * Z), vh = cv.height / (dpr * Z);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = '#161022'; g.fillRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = false;
+    const T = this.T, mw = this.MW * T, mh = this.MH * T;
+    const p = this.player;
+    let cx = p.x - vw / 2, cy = p.y - vh / 2 - 16;
+    cx = vw >= mw ? -(vw - mw) / 2 : Math.max(0, Math.min(mw - vw, cx));
+    cy = vh >= mh ? -(vh - mh) / 2 : Math.max(0, Math.min(mh - vh, cy));
+    cx = Math.round(cx); cy = Math.round(cy);
+    g.setTransform(dpr * Z, 0, 0, dpr * Z, Math.round(-cx * dpr * Z), Math.round(-cy * dpr * Z));
+    g.drawImage(this._staticC, 0, 0);
+    const ents = [this.player].concat(this.activeNpcs());
+    const items = [];
+    for (const d of this.deco) items.push(d);
+    for (const e of ents) items.push({ y: e.y + (((e.sitting || e.mode === 'sit') && e.dir === 'down') ? 18 : 0), ent: e });
+    items.sort((a, b) => a.y - b.y);
+    for (const it of items) {
+      if (it.ent) this.drawEnt(g, it.ent);
+      else g.drawImage(it.img, it.px, it.topY);
+    }
+    if (this.promptTarget && !p.sitting) this.drawMarker(g, now);
+    const lang = this.state.lang;
+    for (const e of ents) this.drawTag(g, e, lang);
+    for (const e of ents) this.drawBubble(g, e, lang, now);
+    this.emotes = this.emotes.filter(em => {
+      const age = (now - em.born) / 1300;
+      if (age >= 1) return false;
+      g.globalAlpha = Math.max(0, 1 - Math.max(0, age - 0.55) / 0.45);
+      g.font = '12px sans-serif'; g.textAlign = 'center';
+      g.fillText(em.ch, em.e.x, em.e.y - 72 - age * 24);
+      g.globalAlpha = 1; g.textAlign = 'left';
+      return true;
+    });
+  }
+
+  drawEnt(g, e) {
+    const set = this.charSpr[e.id]; if (!set) return;
+    let img;
+    if (e.sitting || e.mode === 'sit') img = set.sit[e.dir] || set.sit.down;
+    else img = set[e.dir][e.moving ? 1 + ((e.animT * 7 | 0) % 2) : 0];
+    g.fillStyle = 'rgba(16,10,28,0.22)';
+    g.fillRect(Math.round(e.x - 8), Math.round(e.y - 5), 16, 6);
+    g.fillRect(Math.round(e.x - 11), Math.round(e.y - 4), 22, 4);
+    g.drawImage(img, Math.round(e.x - 16), Math.round(e.y - 54));
+  }
+
+  drawTag(g, e, lang) {
+    const name = lang === 'ko' ? e.ko : e.en;
+    g.font = '7px Galmuri7, Galmuri9, monospace'; g.textAlign = 'left'; g.textBaseline = 'middle';
+    const w = g.measureText(name).width + 8;
+    const x = Math.round(e.x - w / 2), y = Math.round(e.y - 68);
+    g.fillStyle = e.id === 'me' ? 'rgba(226,87,76,0.92)' : 'rgba(20,14,36,0.78)';
+    g.fillRect(x, y, w, 11);
+    g.fillStyle = '#fff8e8';
+    g.fillText(name, x + 4, y + 6);
+    g.textBaseline = 'alphabetic';
+  }
+
+  drawBubble(g, e, lang, now) {
+    if (!e.bubble || now > e.bubble.until) return;
+    const txt = lang === 'ko' ? e.bubble.ko : e.bubble.en;
+    g.font = '9px Galmuri9, Galmuri11, monospace';
+    const lines = [];
+    let cur = '';
+    for (const ch of txt) {
+      if (g.measureText(cur + ch).width > 110) { lines.push(cur); cur = ch; if (lines.length === 3) break; }
+      else cur += ch;
+    }
+    if (lines.length < 3 && cur) lines.push(cur);
+    const bw = Math.max.apply(null, lines.map(l => g.measureText(l).width)) + 12;
+    const bh = lines.length * 12 + 8;
+    const x = Math.round(e.x - bw / 2), y = Math.round(e.y - 76 - bh);
+    g.fillStyle = '#241a38'; g.fillRect(x - 2, y - 2, bw + 4, bh + 4);
+    g.fillStyle = '#fff8e8'; g.fillRect(x, y, bw, bh);
+    g.fillStyle = '#241a38'; g.fillRect(Math.round(e.x - 4), y + bh + 2, 8, 3); g.fillRect(Math.round(e.x - 2), y + bh + 5, 4, 2);
+    g.fillStyle = '#fff8e8'; g.fillRect(Math.round(e.x - 2), y + bh, 4, 3);
+    g.fillStyle = '#3b3252'; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    lines.forEach((l, i) => g.fillText(l, x + 6, y + 12 + i * 12));
+  }
+
+  drawMarker(g, now) {
+    const it = this.promptTarget, T = this.T;
+    const bx = (it.x + 0.5) * T, by = it.y * T - 12 + Math.sin(now / 170) * 3;
+    g.fillStyle = '#241a38';
+    g.fillRect(bx - 7, by - 1, 14, 5); g.fillRect(bx - 5, by + 3, 10, 4); g.fillRect(bx - 3, by + 7, 6, 3); g.fillRect(bx - 1, by + 10, 2, 2);
+    g.fillStyle = '#ffd93d';
+    g.fillRect(bx - 6, by, 12, 4); g.fillRect(bx - 4, by + 3, 8, 3); g.fillRect(bx - 2, by + 6, 4, 3);
+  }
+
+  drawMini(now) {
+    const cv = this.miniRef.current;
+    if (!cv || !this.player || !this._miniBase) return;
+    if (cv.width !== 184) { cv.width = 184; cv.height = 120; }
+    const g = cv.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(this._miniBase, 0, 0);
+    const s = 4, T = this.T;
+    for (const n of this.activeNpcs()) { g.fillStyle = n.col; g.fillRect((n.x / T) * s - 1, (n.y / T) * s - 1, 3, 3); }
+    const p = this.player;
+    g.fillStyle = ((now / 500) | 0) % 2 ? '#fff8e8' : '#ffd93d';
+    g.fillRect((p.x / T) * s - 2, (p.y / T) * s - 2, 4, 4);
+  }
+
+  // ————— render vals —————
+  renderVals() {
+    const st = this.state;
+    const lang = st.lang;
+    const L = this.I18N[lang];
+    const ui = st.ui || {};
+    const av = this.avatars || {};
+    const BLANK = this.BLANK;
+    const npcById = this.npcById || {};
+    const active = this.npcs ? this.activeNpcs() : [];
+    const dot = this.STATUS_DOT;
+    const stLabel = (k) => L['st_' + k] || k;
+    const pr = this.props || {};
+    const mkAv = (url, size, abs) => {
+      const s = { width: size + 'px', height: size + 'px', imageRendering: 'pixelated' };
+      if (abs) { s.position = 'absolute'; s.left = '50%'; s.top = '52%'; s.animation = 'omBob 2.4s ease-in-out infinite'; }
+      else { s.opacity = 0.45; }
+      if (url) { s.backgroundImage = 'url("' + url + '")'; s.backgroundSize = 'cover'; }
+      return s;
+    };
+    const tile = (id) => {
+      const me = id === 'me';
+      const n = me ? null : npcById[id];
+      const u = me ? av.me : av[id];
+      const col = me ? '#e2574c' : (n ? n.col : '#5561d8');
+      return {
+        id,
+        name: me ? L.you : (n ? (lang === 'ko' ? n.ko : n.en) : ''),
+        camOn: me ? st.camOn : (n ? n.camOn !== false : true),
+        camOff: me ? !st.camOn : (n ? n.camOn === false : false),
+        muted: me ? !st.micOn : false,
+        bg: this.vidBg(col),
+        avBig: mkAv(u, 72, true), avSmall: mkAv(u, 60, true), avDim: mkAv(u, 40, false)
+      };
+    };
+    const nearT = (ui.near || []).map(tile);
+    const nearTiles = [tile('me')].concat(nearT);
+    const meetTiles = [tile('me')].concat((ui.meet || []).map(tile));
+    const inMeeting = ui.zone === 'meeting';
+    const inFocus = ui.zone === 'focus';
+    const showNearby = !inMeeting && !inFocus && nearT.length > 0;
+    const total = ui.pomoPhase === 'break' ? 300 : 1500;
+    const pl = ui.pomoLeft != null ? ui.pomoLeft : 1500;
+    const pomoClock = String((pl / 60) | 0).padStart(2, '0') + ':' + String(pl % 60).padStart(2, '0');
+    const phCol = ui.pomoPhase === 'break' ? '#58b368' : '#e2574c';
+    const filled = Math.ceil((pl / total) * 10);
+    const pomoCells = Array.from({ length: 10 }, (_, i) => ({ bg: i < filled ? phCol : '#fff8e8' }));
+    const focusNames = (ui.focus || []).map(id => { const n = npcById[id]; return n ? (lang === 'ko' ? n.ko : n.en) : ''; }).filter(Boolean);
+    if (inFocus) focusNames.push(L.you);
+    const mkBtn = (id, icon, label, on, off, onClick, badge) => ({
+      id, icon, label, onClick,
+      bg: off ? '#f0b8a8' : on ? '#9fe3a8' : '#fff8e8',
+      showBadge: !!(badge && badge > 0), badge: badge > 9 ? '9+' : String(badge || ''), showOff: !!off
+    });
+    const toolbarBtns = [
+      mkBtn('mic', '🎤', L.mic, st.micOn, !st.micOn, this.toggleMic),
+      mkBtn('cam', '📹', L.cam, st.camOn, !st.camOn, this.toggleCam),
+      mkBtn('emo', '😀', L.react, st.emojiOpen, false, this.toggleEmoji),
+      mkBtn('chat', '💬', L.chat, st.panelOpen && st.tab === 'chat', false, this.openChatTab, st.unread),
+      mkBtn('ppl', '👥', L.people, st.panelOpen && st.tab === 'people', false, this.openPeopleTab),
+      mkBtn('lang', '🌐', lang === 'ko' ? 'KO→EN' : 'EN→KO', false, false, this.toggleLang),
+      mkBtn('help', '❔', L.help, false, false, this.showHelp)
+    ];
+    const messages = (st.messages || []).map(m => ({
+      id: m.id, isSys: !!m.sys, isMsg: !m.sys,
+      name: m.mine ? L.you : (lang === 'ko' ? m.nameKo : m.nameEn),
+      color: m.col || '#8d7ab0', time: m.time, text: lang === 'ko' ? m.ko : m.en
+    }));
+    const pAv = (u, bgc) => { const s = { width: '30px', height: '30px', imageRendering: 'pixelated', border: '2px solid #241a38', flex: 'none', backgroundColor: bgc }; if (u) { s.backgroundImage = 'url("' + u + '")'; s.backgroundSize = 'cover'; } return s; };
+    const participants = [{ id: 'me', name: L.you + ' ★', avStyle: pAv(av.me, '#ffe9b8'), status: stLabel(ui.myStatus || 'online'), dot: dot[ui.myStatus] || dot.online }]
+      .concat(active.map(n => ({ id: n.id, name: lang === 'ko' ? n.ko : n.en, avStyle: pAv(av[n.id], this.shade(n.col, 0.55)), status: stLabel(n.status), dot: dot[n.status] || dot.online })));
+    const toasts = (st.toasts || []).map(t => ({ id: t.id, text: lang === 'ko' ? t.ko : t.en }));
+    const emojiBtns = this.EMOJI.map((ch, i) => ({ ch, onPick: () => this.playerEmote(i) }));
+    return {
+      canvasRef: this.canvasRef, miniRef: this.miniRef, chatListRef: this.chatListRef, chatInputRef: this.chatInputRef,
+      L, isSunset: pr.timeOfDay === 'sunset', isNight: pr.timeOfDay === 'night',
+      avatarsReady: !!(this.avatars && this.avatars.me),
+      onlineCount: 1 + active.length,
+      zoneLabel: L['z_' + (ui.zone || 'hall')] || L.z_hall,
+      inMeeting, inFocus, showNearby, meetTiles, nearTiles,
+      pomoPhaseBg: phCol, pomoPhaseLabel: ui.pomoPhase === 'break' ? L.breakPhase : L.focusPhase,
+      pomoClock, pomoCells, pomoMembers: focusNames.join(', ') || L.you,
+      showPrompt: !!ui.prompt && !st.emojiOpen, promptLabel: ui.prompt ? (lang === 'ko' ? ui.prompt.ko : ui.prompt.en) : '',
+      emojiOpen: st.emojiOpen, emojiBtns, toasts,
+      myAvatar: av.me || BLANK,
+      myAvatarStyle: Object.assign({ width: '38px', height: '38px', imageRendering: 'pixelated', border: '2px solid #241a38', flex: 'none', backgroundColor: '#ffe9b8' }, av.me ? { backgroundImage: 'url("' + av.me + '")', backgroundSize: 'cover' } : {}),
+      myStatusColor: dot[ui.myStatus] || dot.online, myStatusLabel: stLabel(ui.myStatus || 'online'),
+      toolbarBtns,
+      panelOpen: st.panelOpen, tabChat: st.tab === 'chat', tabPeople: st.tab === 'people',
+      chatTabBg: st.tab === 'chat' ? '#ffe9b8' : '#f6edd8', peopleTabBg: st.tab === 'people' ? '#ffe9b8' : '#f6edd8',
+      openChatTab: this.openChatTab, openPeopleTab: this.openPeopleTab, closePanel: this.closePanel,
+      messages, chatDraft: st.chatDraft, onChatChange: this.onChatChange, onChatKey: this.onChatKey,
+      onChatFocus: this.onChatFocus, onChatBlur: this.onChatBlur, sendChat: this.sendChat,
+      participants, showWelcome: st.showWelcome, dismissWelcome: this.dismissWelcome
+    };
+  }
+}
+</script>
+</body>
+</html>
