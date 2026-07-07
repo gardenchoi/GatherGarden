@@ -63,11 +63,11 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
-function getId() {
-  const stored = localStorage.getItem("gg-player-id");
+function getSessionId() {
+  const stored = sessionStorage.getItem("gg-session-id");
   if (stored) return stored;
   const next = crypto.randomUUID();
-  localStorage.setItem("gg-player-id", next);
+  sessionStorage.setItem("gg-session-id", next);
   return next;
 }
 
@@ -90,9 +90,10 @@ function roomById(roomId) {
 function presenceList(state, selfId) {
   return Object.values(state)
     .flat()
-    .filter((entry) => entry?.id && entry.id !== selfId)
+    .filter((entry) => entry?.clientId && entry.clientId !== selfId)
     .map((entry) => ({
-      id: entry.id,
+      id: entry.clientId,
+      clientId: entry.clientId,
       name: entry.name || "방문자",
       color: entry.color || COLORS[0],
       x: Number(entry.x) || 0,
@@ -115,7 +116,7 @@ function JoinScreen({ onJoin }) {
     event.preventDefault();
     const cleanName = name.trim().slice(0, 16);
     if (!cleanName) return;
-    const profile = { id: getId(), name: cleanName, color };
+    const profile = { name: cleanName, color };
     localStorage.setItem("gg-profile", JSON.stringify(profile));
     onJoin(profile);
   }
@@ -290,6 +291,7 @@ function App() {
   const [draft, setDraft] = useState("");
   const [panelOpen, setPanelOpen] = useState(true);
   const channelRef = useRef(null);
+  const clientIdRef = useRef(getSessionId());
   const room = useMemo(() => roomById(roomId), [roomId]);
 
   useEffect(() => {
@@ -307,7 +309,7 @@ function App() {
     const channel = supabase.channel(`gathergarden:${room.id}`, {
       config: {
         broadcast: { self: false },
-        presence: { key: profile.id },
+        presence: { key: clientIdRef.current },
       },
     });
 
@@ -315,7 +317,7 @@ function App() {
 
     channel
       .on("presence", { event: "sync" }, () => {
-        setPeers(presenceList(channel.presenceState(), profile.id));
+        setPeers(presenceList(channel.presenceState(), clientIdRef.current));
       })
       .on("broadcast", { event: "chat" }, ({ payload }) => {
         setMessages((prev) => [...prev.slice(-80), payload]);
@@ -323,6 +325,7 @@ function App() {
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
+            clientId: clientIdRef.current,
             ...profile,
             ...position,
             room: room.id,
@@ -335,11 +338,12 @@ function App() {
       channelRef.current = null;
       supabase.removeChannel(channel);
     };
-  }, [profile?.id, room.id]);
+  }, [profile?.name, profile?.color, room.id]);
 
   useEffect(() => {
     if (!profile || !channelRef.current) return;
     channelRef.current.track({
+      clientId: clientIdRef.current,
       ...profile,
       ...position,
       room: room.id,
