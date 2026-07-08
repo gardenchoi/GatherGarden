@@ -226,21 +226,56 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ gbOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);width:390px;max-height:74%;display:flex;flex-direction:column;animation:omPop 0.2s ease-out;">
+        <div style="display:flex;align-items:center;border-bottom:3px solid #241a38;flex:none;">
+          <span style="flex:1;padding:11px 14px;font-size:14px;color:#241a38;">📖 {{ L.gbTitle }}</span>
+          <button onClick="{{ closeGuestbook }}" style="width:40px;align-self:stretch;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:12px;">✕</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;min-height:120px;">
+          <sc-if value="{{ gbShowNotice }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;font-size:11px;color:#8d7ab0;padding:20px 0;line-height:1.7;">{{ gbNotice }}</div>
+          </sc-if>
+          <sc-for list="{{ gbEntries }}" as="g" hint-placeholder-count="3">
+            <div key="{{ g.id }}" style="display:flex;flex-direction:column;gap:3px;background:#f6edd8;border:2px solid #e4d5b4;padding:8px 10px;">
+              <div style="display:flex;align-items:baseline;gap:7px;">
+                <span style="font-size:11px;color:{{ g.col }};">{{ g.name }}</span>
+                <span style="font-size:8px;color:#b3a68f;">{{ g.time }}</span>
+              </div>
+              <div style="font-size:11px;color:#3b3252;line-height:1.5;">{{ g.message }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;border-top:3px solid #241a38;flex:none;">
+          <input value="{{ gbDraft }}" onChange="{{ onGbChange }}" onKeyDown="{{ onGbKey }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.gbPlaceholder }}" maxLength="200" style="flex:1;min-width:0;border:none;outline:none;background:#fff8e8;padding:12px 10px;font-size:12px;color:#241a38;">
+          <button onClick="{{ sendGb }}" style="border:none;border-left:3px solid #241a38;background:#58b368;color:#fff8e8;padding:0 16px;font-size:11px;cursor:pointer;">{{ L.gbWrite }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ fortuneOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:380px;">
+        <div style="font-size:40px;">🥠</div>
+        <div style="background:#e8a33d;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.4);padding:7px 14px;font-size:13px;letter-spacing:1px;">{{ L.fortuneTitle }}</div>
+        <div style="font-size:13px;color:#3b3252;text-align:center;line-height:1.8;background:#fff8e8;border:3px solid #241a38;padding:16px 18px;">{{ fortuneText }}</div>
+        <button onClick="{{ closeFortune }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:10px 22px;font-size:12px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">{{ L.fortuneClose }}</button>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ showWelcome }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
-      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:26px 30px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:430px;">
-        <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.4);padding:10px 18px;font-size:20px;letter-spacing:2px;">{{ L.roomName }}</div>
-        <div style="font-size:12px;color:#8d7ab0;">{{ L.welcomeSub }}</div>
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center;background:#fff8e8;border:3px solid #241a38;padding:14px 18px;">
-          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">WASD · ←↑↓→</span>
-          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlMove }}</span>
-          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">E</span>
-          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlInteract }}</span>
-          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">1 – 6</span>
-          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlEmote }}</span>
-          <span style="background:#ffe9b8;border:2px solid #241a38;box-shadow:0 2px 0 #241a38;padding:4px 8px;font-size:10px;color:#241a38;text-align:center;">Enter</span>
-          <span style="font-size:11px;color:#3b3252;">{{ L.ctrlChat }}</span>
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:20px 26px;display:flex;flex-direction:column;align-items:center;gap:11px;animation:omPop 0.2s ease-out;max-width:470px;">
+        <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.4);padding:9px 18px;font-size:19px;letter-spacing:2px;">{{ L.roomName }}</div>
+        <div style="font-size:11px;color:#8d7ab0;">{{ L.welcomeSub }}</div>
+        <div style="display:flex;align-items:center;gap:10px;background:#fff8e8;border:3px solid #241a38;padding:13px 16px;">
+          <span style="font-size:11px;color:#3b3252;flex:none;">{{ L.pNameLabel }}</span>
+          <input value="{{ pName }}" onChange="{{ onPNameChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.pNameHint }}" maxLength="10" style="border:2px solid #241a38;outline:none;background:#f6edd8;padding:8px 10px;font-size:12px;color:#241a38;width:200px;">
         </div>
+        <div style="font-size:10px;color:#3b3252;text-align:center;background:#fff8e8;border:3px solid #241a38;padding:8px 14px;line-height:1.8;">⌨️ {{ L.ctrlLine }}</div>
         <div style="font-size:10px;color:#8d7ab0;text-align:center;line-height:1.6;">💡 {{ L.tip }}</div>
         <button onClick="{{ dismissWelcome }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:12px 24px;font-size:13px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">▶ {{ L.startBtn }}</button>
       </div>
@@ -251,7 +286,7 @@
 <script type="text/x-dc" data-dc-script data-props="{
   "npcCount": { "editor": "range", "default": 8, "min": 0, "max": 8, "step": 1, "tsType": "number", "section": "월드" },
   "timeOfDay": { "editor": "enum", "default": "day", "options": ["day", "sunset", "night"], "tsType": "string", "section": "월드" },
-  "npcChatter": { "editor": "boolean", "default": true, "tsType": "boolean", "section": "월드" },
+  "npcChatter": { "editor": "boolean", "default": false, "tsType": "boolean", "section": "월드" },
   "playerSpeed": { "editor": "range", "default": 3.4, "min": 2, "max": 6, "step": 0.2, "unit": "타일/초", "tsType": "number", "section": "플레이어" }
 }">
 class Component extends DCLogic {
@@ -259,6 +294,9 @@ class Component extends DCLogic {
     ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0,
     chatDraft: '', emojiOpen: false, showWelcome: true, micOn: true, camOn: true,
     toasts: [], messages: [],
+    pName: '', pCol: '#e2574c', pStyle: 'spiky', pHair: '#2c2438',
+    gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
+    fortuneOpen: false, fortuneText: '',
     ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
   };
 
@@ -270,6 +308,27 @@ class Component extends DCLogic {
   T = 32; MW = 46; MH = 30;
   BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
   EMOJI = ['👍','❤️','😂','🎉','😮','☕'];
+  PCOLS = ['#e2574c','#58b368','#e8a33d','#4a90d9','#9b6bd3','#d3699b','#4fae9e','#5561d8'];
+  PHAIRS = ['#2c2438','#6e4a2f','#d95a4a','#e8c04a','#8d7ab0'];
+  PSTYLES = [['spiky','짧은머리','Short'],['bowl','단발','Bowl'],['long','긴머리','Long'],['bun','묶은머리','Bun'],['cap','모자','Cap'],['hood','후드','Hood']];
+  FORTUNES = [
+    ['오늘의 커밋은 한 번에 통과합니다. 자신있게 진행하세요!','Today\'s work sails through on the first try. Go boldly!'],
+    ['오후 3시쯤 좋은 소식이 도착합니다. 알림을 켜두세요.','Good news arrives around 3pm. Keep notifications on.'],
+    ['지금 미루고 있는 그 일, 생각보다 20분이면 끝납니다.','That task you\'re avoiding? It only takes 20 minutes.'],
+    ['오늘은 화상회의에서 카메라가 유난히 잘 나오는 날입니다.','Your camera angle is immaculate today.'],
+    ['점심 메뉴 고민은 그만. 처음 떠올린 그것이 정답입니다.','Stop debating lunch. Your first instinct was right.'],
+    ['따뜻한 음료 한 잔이 막힌 문제를 풀어줄 것입니다.','A warm drink will untangle that stubborn problem.'],
+    ['오늘 보낸 메시지 하나가 누군가의 하루를 구합니다.','One message you send today saves someone\'s day.'],
+    ['산책 15분이 회의 1시간보다 많은 것을 해결해 줍니다.','A 15-minute walk beats a 1-hour meeting today.'],
+    ['오늘은 "나중에 하겠습니다"라고 말해도 되는 날입니다.','Today you\'re allowed to say "I\'ll do it later."'],
+    ['저녁에 뜻밖의 연락이 옵니다. 반가운 쪽입니다.','An unexpected message arrives tonight — the good kind.'],
+    ['모니터에서 눈을 떼고 창밖을 보세요. 행운이 보입니다.','Look away from the screen. Luck is outside the window.'],
+    ['오늘의 실수는 내일의 유머 소재가 됩니다. 걱정 금지.','Today\'s mistake is tomorrow\'s funny story. No worries.'],
+    ['허리를 펴세요. 지금요. 미래의 당신이 고마워합니다.','Straighten your back. Now. Future you says thanks.'],
+    ['냉장고에 생각보다 괜찮은 간식이 숨어 있습니다.','A better-than-expected snack hides in your fridge.'],
+    ['오늘 마무리한 일이 다음 주의 나를 살립니다.','What you finish today rescues next-week you.'],
+    ['퇴근 후의 계획을 지금 세우면 오후가 두 배로 빨라집니다.','Plan tonight\'s fun now — the afternoon flies twice as fast.']
+  ];
   STATUS_DOT = { online:'#58b368', focus:'#4a90d9', break:'#e8a33d', meeting:'#9b6bd3', pomo:'#e2574c', game:'#5561d8', call:'#d3699b', relax:'#4fae9e' };
 
   I18N = {
@@ -279,7 +338,13 @@ class Component extends DCLogic {
       camOffL:'카메라 꺼짐', nearbyCall:'근처 대화 연결됨', meetingRoom:'회의실 A', meetingTitle:'주간 싱크',
       leaveHint:'방을 나가면 통화 종료', pomoTitle:'뽀모도로 라운지', focusPhase:'집중', breakPhase:'휴식',
       together:'함께 집중 중', welcomeSub:'재택러들의 픽셀 아지트', ctrlMove:'이동', ctrlInteract:'상호작용 · 앉기 / 일어나기',
-      ctrlEmote:'이모지 리액션', ctrlChat:'채팅 열기', startBtn:'아무 키나 눌러 입장', tip:'동료 곁에 다가가면 화상 대화가 연결돼요. 회의실·뽀모도로 룸도 구경해 보세요!',
+      ctrlEmote:'이모지 리액션', ctrlChat:'채팅 열기', startBtn:'입장하기', tip:'NPC에게 다가가 E를 누르면 말을 걸 수 있어요. 로비 방명록과 카페 포춘쿠키도 잊지 마세요!',
+      ctrlLine:'WASD 이동 · E 상호작용/대화 · 1~6 이모지 · Enter 채팅',
+      pPreview:'내 아바타', pNameLabel:'내 이름', pNameHint:'이름을 입력하세요', pColor:'옷', pHair:'머리', pStyle:'스타일',
+      gbTitle:'재택타운 방명록', gbPlaceholder:'한마디 남겨주세요…', gbWrite:'남기기',
+      gbLoading:'방명록을 불러오는 중…', gbEmpty:'아직 글이 없어요.\n첫 번째 방명록을 남겨보세요! ✍️', gbError:'방명록을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
+      fortuneTitle:'오늘의 포춘쿠키', fortuneClose:'냠냠 잘 먹었습니다',
+      talkTo:'말 걸기', gbAct:'방명록 남기기', fortuneAct:'포춘쿠키 뽑기',
       z_meeting:'회의실', z_focus:'뽀모도로 룸', z_cafe:'카페', z_game:'게임 코너', z_work:'오픈 데스크', z_lounge:'라운지', z_hall:'로비',
       st_online:'온라인', st_focus:'집중 중', st_break:'커피 브레이크', st_meeting:'회의 중', st_pomo:'뽀모도로', st_game:'게임 중', st_call:'통화 중', st_relax:'쉬는 중'
     },
@@ -289,7 +354,13 @@ class Component extends DCLogic {
       camOffL:'Camera off', nearbyCall:'Nearby call connected', meetingRoom:'Meeting Room A', meetingTitle:'Weekly Sync',
       leaveHint:'Walk out to leave the call', pomoTitle:'Pomodoro Lounge', focusPhase:'FOCUS', breakPhase:'BREAK',
       together:'focusing together', welcomeSub:'A pixel hideout for remote workers', ctrlMove:'Move', ctrlInteract:'Interact · Sit / Stand',
-      ctrlEmote:'Emoji reaction', ctrlChat:'Open chat', startBtn:'Press any key to enter', tip:'Walk up to a coworker to start a video chat. Check out the meeting room and pomodoro room too!',
+      ctrlEmote:'Emoji reaction', ctrlChat:'Open chat', startBtn:'Enter town', tip:'Walk up to an NPC and press E to chat. Don\'t miss the lobby guestbook and café fortune cookies!',
+      ctrlLine:'WASD move · E interact/talk · 1-6 emoji · Enter chat',
+      pPreview:'My avatar', pNameLabel:'My name', pNameHint:'Enter your name', pColor:'Top', pHair:'Hair', pStyle:'Style',
+      gbTitle:'WFH Town Guestbook', gbPlaceholder:'Leave a note…', gbWrite:'Post',
+      gbLoading:'Loading the guestbook…', gbEmpty:'No notes yet.\nBe the first to sign! ✍️', gbError:'Couldn\'t load the guestbook. Please try again later.',
+      fortuneTitle:'Fortune Cookie', fortuneClose:'Yum, thanks!',
+      talkTo:'Talk', gbAct:'Sign the guestbook', fortuneAct:'Crack a fortune cookie',
       z_meeting:'Meeting Room', z_focus:'Pomodoro Room', z_cafe:'Café', z_game:'Game Corner', z_work:'Open Desks', z_lounge:'Lounge', z_hall:'Lobby',
       st_online:'Online', st_focus:'Focusing', st_break:'Coffee break', st_meeting:'In a meeting', st_pomo:'Pomodoro', st_game:'Gaming', st_call:'On a call', st_relax:'Chilling'
     }
@@ -324,13 +395,14 @@ class Component extends DCLogic {
     this._booted = true;
     this.keys = new Set(); this.typing = false; this.emotes = []; this.tmrs = []; this.mid = 1; this._spr = {};
     this.remotes = {};
+    this.profile = this.loadProfile();
+    if (this.profile) this.setState({ pName: this.profile.name || '' });
     this.buildWorld();
     this.buildEntities();
     this.buildStatic();
     this.makeAvatars();
     this.loadMeSprite();
     this.loadNpcSprites();
-    this.pomo = { phase:'focus', end: Date.now() + 25*60*1000 };
     this.bootAt = Date.now(); this.lastZone = null; this.uiSig = ''; this.lastSync = 0; this.lastMini = 0;
     window.addEventListener('keydown', this.onKey);
     window.addEventListener('keyup', this.onKey);
@@ -356,12 +428,13 @@ class Component extends DCLogic {
       const rt = window.__townRT;
       if (!rt) { this.after(300, tryInit); return; }
       if (!rt.available || this.net) return;
-      const COLS = ['#e2574c','#58b368','#e8a33d','#4a90d9','#9b6bd3','#d3699b','#4fae9e','#5561d8'];
+      const COLS = this.PCOLS;
       let sid = sessionStorage.getItem('town-sid');
       if (!sid) { sid = Math.random().toString(36).slice(2, 10); sessionStorage.setItem('town-sid', sid); }
       let hash = 0; for (const c of sid) hash += c.charCodeAt(0);
+      const prof = this.profile;
       this._netCol = COLS[hash % COLS.length];
-      this._netName = '게스트-' + sid.slice(0, 4).toUpperCase();
+      this._netName = prof && prof.name ? prof.name : '게스트-' + sid.slice(0, 4).toUpperCase();
       this.net = rt.join(
         { name: this._netName, col: this._netCol, x: this.player.x, y: this.player.y },
         {
@@ -396,18 +469,26 @@ class Component extends DCLogic {
       if (this.net && key === this.net.id) continue;
       const meta = state[key] && state[key][0]; if (!meta) continue;
       seen[key] = true;
+      const metaSig = [meta.name, meta.col, meta.style, meta.hair].join('|');
       if (!this.remotes[key]) {
         const ent = {
           id: 'r_' + key, ko: meta.name || '게스트', en: meta.name || 'Guest',
-          col: meta.col || '#5561d8',
+          col: meta.col || '#5561d8', sig: metaSig,
           x: meta.x || 22.5 * this.T, y: meta.y || 26.5 * this.T,
           tx: null, ty: null, dir: 'down', moving: false, animT: 0, sitting: null, remote: true
         };
         this.remotes[key] = ent;
-        this.charSpr[ent.id] = this.mkSet({ skin:'#f0c8a0', hair:'#241a38', style:'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
+        this.charSpr[ent.id] = this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
         this.mkRemoteAvatar(ent);
         this.pushMsg({ id: this.mid++, sys: true, ko: ent.ko + ' 님이 입장했어요 👋', en: ent.en + ' joined 👋', time: this.tstr() });
         added = true;
+      } else if (this.remotes[key].sig !== metaSig) {
+        const ent = this.remotes[key];
+        ent.sig = metaSig;
+        ent.ko = meta.name || '게스트'; ent.en = meta.name || 'Guest';
+        ent.col = meta.col || '#5561d8';
+        this.charSpr[ent.id] = this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
+        this.mkRemoteAvatar(ent);
       }
     }
     for (const key of Object.keys(this.remotes)) {
@@ -486,7 +567,7 @@ class Component extends DCLogic {
   after(ms, fn) { const t = setTimeout(fn, ms); this.tmrs.push(t); return t; }
   pick(a) { return a[(Math.random() * a.length) | 0]; }
   tstr() { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
-  chatterOn() { const p = this.props || {}; return p.npcChatter !== false; }
+  chatterOn() { const p = this.props || {}; return p.npcChatter === true; }
   activeNpcs() { const p = this.props || {}; const c = Math.max(0, Math.min(8, p.npcCount != null ? p.npcCount : 8)); return (this.npcs || []).slice(0, c); }
   isActive(n) { return this.activeNpcs().indexOf(n) >= 0; }
   shade(hex, amt) {
@@ -519,7 +600,7 @@ class Component extends DCLogic {
       { id:'work', x:1, y:11, w:29, h:10 },
       { id:'lounge', x:1, y:21, w:16, h:8 }
     ];
-    this.FM = { desk:{w:2,h:1}, chair:{w:1,h:1}, stool:{w:1,h:1}, tableBig:{w:4,h:2}, counter:{w:9,h:1}, machine:{w:1,h:1,pass:true}, fridge:{w:1,h:1}, vending:{w:1,h:1}, cooler:{w:1,h:1}, sofa:{w:3,h:1}, armchair:{w:1,h:1}, ctable:{w:2,h:1}, rtable:{w:1,h:1}, tv:{w:2,h:1}, plant:{w:1,h:1}, shelf:{w:2,h:1}, arcade:{w:1,h:1}, beanbag:{w:1,h:1}, printer:{w:1,h:1}, rdesk:{w:3,h:1}, sign:{w:1,h:1}, booth:{w:2,h:2}, lamp:{w:1,h:1}, wboard:{w:2,h:1} };
+    this.FM = { desk:{w:2,h:1}, chair:{w:1,h:1}, stool:{w:1,h:1}, tableBig:{w:4,h:2}, counter:{w:9,h:1}, machine:{w:1,h:1,pass:true}, cookiejar:{w:1,h:1,pass:true}, fridge:{w:1,h:1}, vending:{w:1,h:1}, cooler:{w:1,h:1}, sofa:{w:3,h:1}, armchair:{w:1,h:1}, ctable:{w:2,h:1}, rtable:{w:1,h:1}, tv:{w:2,h:1}, plant:{w:1,h:1}, shelf:{w:2,h:1}, arcade:{w:1,h:1}, beanbag:{w:1,h:1}, printer:{w:1,h:1}, rdesk:{w:3,h:1}, sign:{w:1,h:1}, booth:{w:2,h:2}, lamp:{w:1,h:1}, wboard:{w:2,h:1} };
     this.furn = []; this.inters = [];
     const F = (t, x, y, o) => { this.furn.push(Object.assign({ t, x, y }, o || {})); };
     const SEAT = (x, y, sdir, kind, ex, ey, ko, en) => { this.inters.push({ id:'s'+x+'_'+y, act:'sit', x, y, r:1.5, sx:x, sy:y, sdir, kind, ex, ey, ko, en }); };
@@ -543,6 +624,8 @@ class Component extends DCLogic {
     [17,19,21,23].forEach(x => { F('stool', x, 5); SEAT(x, 5, 'up', 'relax', x, 6, '바 자리에 앉기', 'Sit at the bar'); });
     F('rtable', 18, 7); F('rtable', 22, 7);
     [[17,'right'],[19,'left'],[21,'right'],[23,'left']].forEach(p => { F('stool', p[0], 7); SEAT(p[0], 7, p[1], 'relax', p[0], 8, '앉아서 수다 떨기', 'Sit and chat'); });
+    F('cookiejar', 21, 3, { oy:-14, ys:20 });
+    this.inters.push({ id:'fortune', act:'fortune', x:21, y:3, r:1.6, ko:'포춘쿠키 뽑기', en:'Crack a fortune cookie' });
     TOAST('coffee', 18, 3, '커피 내리기', 'Brew coffee', '☕ 아메리카노 완료! 오늘의 연료 충전', '☕ Americano ready! Fuel acquired', '☕', { npcReact:'latte', rko:'제가 내린 거예요. 맛있죠?', ren:'I brewed that. Good, right?' });
     TOAST('vend', 28, 3, '간식 뽑기', 'Grab a snack', '🍫 초코바 겟! (재고 3개 남음)', '🍫 Choco bar! (3 left in stock)', '🍫');
     TOAST('water', 30, 3, '물 마시기', 'Drink water', '💧 수분 충전 완료!', '💧 Hydration +100!', '💧');
@@ -573,6 +656,7 @@ class Component extends DCLogic {
     F('rdesk', 20, 24); F('sign', 24, 26); F('booth', 40, 22); F('booth', 40, 25);
     F('cooler', 44, 21); F('plant', 18, 21); F('plant', 44, 28, { v:1 });
     TOAST('notice', 20, 24, '안내 데스크', 'Front desk', 'ℹ️ 공지: 오후 4시 커피챗 @카페', 'ℹ️ Notice: 4pm coffee chat @café', 'ℹ️');
+    this.inters.push({ id:'guestbook', act:'guestbook', x:24, y:26, r:1.8, ko:'방명록 남기기', en:'Sign the guestbook' });
     SEAT(40, 23, 'down', 'call', 39, 23, '부스에서 통화하기', 'Take a call in the booth');
     SEAT(40, 26, 'down', 'call', 39, 26, '부스에서 통화하기', 'Take a call in the booth');
 
@@ -656,6 +740,12 @@ class Component extends DCLogic {
       P(2,2,12,13,'#cfd4dc'); P(2,2,12,3,'#9aa2b1'); P(4,6,8,5,'#d94f4f'); P(6,7,4,3,'#241a38');
       P(6,11,4,1,'#9aa2b1'); P(6,13,4,3,'#fff8e8'); P(2,15,12,2,'#9aa2b1');
       P(7,0,1,2,'rgba(255,255,255,0.5)'); P(9,1,1,1,'rgba(255,255,255,0.4)');
+    });
+    else if (t === 'cookiejar') img = this.mkSpr(16, 18, (P) => {
+      P(4,5,8,11,'#cfe8f0'); P(3,7,10,8,'#cfe8f0');
+      P(5,8,2,2,'#c08a4f'); P(8,9,3,3,'#a5713f'); P(6,11,3,3,'#c08a4f'); P(9,13,2,2,'#a5713f'); P(5,13,2,2,'#e8a33d');
+      P(5,6,1,8,'rgba(255,255,255,0.45)');
+      P(3,3,10,2,'#8a5a30'); P(4,2,8,1,'#a5713f'); P(6,1,4,1,'#a5713f');
     });
     else if (t === 'fridge') img = this.mkSpr(16, 34, (P) => {
       P(2,2,12,30,'#cfd4dc'); P(2,2,12,2,'#e8ecf2'); P(2,16,12,1,'#9aa2b1');
@@ -934,9 +1024,21 @@ class Component extends DCLogic {
     };
   }
 
+  loadProfile() {
+    try {
+      const raw = localStorage.getItem('town-profile');
+      if (!raw) return null;
+      const p = JSON.parse(raw);
+      if (!p) return null;
+      return { name: (p.name || '').slice(0, 10) };
+    } catch (e) { return null; }
+  }
+
   buildEntities() {
     const T = this.T;
-    this.player = { id:'me', ko:'나', en:'Me', col:'#e2574c', x:22.5*T, y:26.5*T, dir:'down', moving:false, animT:0, sitting:null };
+    const prof = this.profile;
+    const myName = prof && prof.name ? prof.name : null;
+    this.player = { id:'me', ko: myName || '나', en: myName || 'Me', col:'#e2574c', x:22.5*T, y:26.5*T, dir:'down', moving:false, animT:0, sitting:null };
     const palMe = { skin:'#f0c8a0', hair:'#2c2438', style:'spiky', shirt:'#e2574c', pants:'#3d4a6b' };
     this.npcs = this.NPCDEF.map(d => {
       const n = Object.assign({}, d);
@@ -1131,10 +1233,22 @@ class Component extends DCLogic {
   }
 
   // ————— input —————
+  // wall-clock pomodoro: every :00 and :30 starts a 25min focus + 5min break cycle
+  getPomo(now) {
+    const d = new Date(now);
+    const into = (d.getMinutes() % 30) * 60 + d.getSeconds();
+    if (into < 1500) return { phase: 'focus', left: 1500 - into };
+    return { phase: 'break', left: 1800 - into };
+  }
+
   onKey = (ev) => {
     const k = (ev.key || '').toLowerCase();
-    if (ev.type === 'keydown' && this.state.showWelcome) this.setState({ showWelcome: false });
     if (this.typing) return;
+    if (this.state.showWelcome) return;
+    if (this.state.gbOpen || this.state.fortuneOpen) {
+      if (ev.type === 'keydown' && k === 'escape') this.setState({ gbOpen: false, fortuneOpen: false });
+      return;
+    }
     if (ev.type === 'keydown') {
       if (['arrowup','arrowdown','arrowleft','arrowright',' '].indexOf(k) >= 0) ev.preventDefault();
       if (k === 'e') { this.tryInteract(); return; }
@@ -1161,7 +1275,67 @@ class Component extends DCLogic {
   closePanel = () => this.setState({ panelOpen: false });
   toggleLang = () => this.setState(s => ({ lang: s.lang === 'ko' ? 'en' : 'ko' }));
   showHelp = () => this.setState({ showWelcome: true });
-  dismissWelcome = () => this.setState({ showWelcome: false });
+
+  dismissWelcome = () => {
+    const st = this.state;
+    const prof = { name: (st.pName || '').trim().slice(0, 10) };
+    this.profile = prof;
+    try { localStorage.setItem('town-profile', JSON.stringify(prof)); } catch (e) {}
+    this.applyProfile();
+    this.setState({ showWelcome: false });
+  };
+
+  applyProfile() {
+    const prof = this.profile;
+    if (!prof || !this.player) return;
+    this.player.ko = prof.name || '나';
+    this.player.en = prof.name || 'Me';
+    if (prof.name) this._netName = prof.name;
+    if (this.net) this.net.updateProfile({ name: this._netName, col: this._netCol, x: this.player.x, y: this.player.y });
+    this.forceUpdate();
+  }
+
+  onPNameChange = (e) => this.setState({ pName: e.target.value.slice(0, 10) });
+
+  openGuestbook = () => {
+    this.setState({ gbOpen: true, gbStatus: 'loading', gbEntries: [] });
+    const rt = window.__townRT;
+    if (!rt || !rt.available || !rt.guestbook) { this.setState({ gbStatus: 'error' }); return; }
+    rt.guestbook.list().then(r => {
+      if (!this.state.gbOpen) return;
+      if (!r.ok) { console.error('guestbook:', r.error); this.setState({ gbStatus: 'error' }); }
+      else this.setState({ gbStatus: 'ready', gbEntries: r.rows });
+    });
+  };
+  closeGuestbook = () => this.setState({ gbOpen: false });
+  onGbChange = (e) => this.setState({ gbDraft: e.target.value });
+  onGbKey = (e) => { if (e.key === 'Enter') this.sendGb(); if (e.key === 'Escape') e.target.blur(); };
+  sendGb = () => {
+    const txt = (this.state.gbDraft || '').trim();
+    if (!txt || this.state.gbSending) return;
+    const rt = window.__townRT;
+    if (!rt || !rt.guestbook) return;
+    const name = this._netName || '게스트';
+    const col = this._netCol || '#e2574c';
+    this.setState({ gbSending: true });
+    rt.guestbook.add(name, col, txt).then(r => {
+      if (r.ok) {
+        const row = { id: 'local' + (this.mid++), created_at: new Date().toISOString(), name, col, message: txt };
+        this.setState(s => ({ gbSending: false, gbDraft: '', gbStatus: 'ready', gbEntries: [row, ...s.gbEntries] }));
+        this.toast('✍️ 방명록을 남겼어요!', '✍️ Signed the guestbook!');
+      } else {
+        console.error('guestbook:', r.error);
+        this.setState({ gbSending: false });
+        this.toast('⚠️ 저장에 실패했어요. 다시 시도해 주세요', '⚠️ Failed to save. Please retry');
+      }
+    });
+  };
+
+  openFortune = () => {
+    const f = this.pick(this.FORTUNES);
+    this.setState({ fortuneOpen: true, fortuneText: this.state.lang === 'ko' ? f[0] : f[1] });
+  };
+  closeFortune = () => this.setState({ fortuneOpen: false });
   onChatChange = (e) => this.setState({ chatDraft: e.target.value });
   onChatKey = (e) => { if (e.key === 'Enter') this.sendChat(); if (e.key === 'Escape') e.target.blur(); };
   onChatFocus = () => { this.typing = true; if (this.keys) this.keys.clear(); };
@@ -1230,6 +1404,21 @@ class Component extends DCLogic {
         const n = this.npcById[it.npcReact];
         this.after(700, () => { n.bubble = { ko: it.rko, en: it.ren, until: Date.now() + 3400 }; });
       }
+    } else if (it.act === 'guestbook') {
+      this.openGuestbook();
+    } else if (it.act === 'fortune') {
+      this.emotes.push({ e: p, ch: '🥠', born: Date.now() });
+      this.openFortune();
+    } else if (it.act === 'npc') {
+      const n = this.npcById[it.npcId];
+      if (!n) return;
+      if (n.mode !== 'sit') {
+        const dx = p.x - n.x, dy = p.y - n.y;
+        n.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+        n.wait = Math.max(n.wait || 0, 3); n.moving = false;
+      }
+      const line = n.lines[n.pi++ % n.lines.length];
+      n.bubble = { ko: line[0], en: line[1], until: Date.now() + 4500 };
     }
   };
 
@@ -1313,24 +1502,38 @@ class Component extends DCLogic {
         const d = Math.hypot((it.x + 0.5) * T - p.x, (it.y + 0.5) * T - (p.y - 8));
         if (d < it.r * T && d < bd) { bd = d; best = it; }
       }
+      for (const n of this.activeNpcs()) {
+        const d = Math.hypot(n.x - p.x, n.y - p.y);
+        if (d < 1.8 * T && d < bd) {
+          bd = d;
+          const L = this.I18N;
+          best = { id: 'npc_' + n.id, act: 'npc', npcId: n.id, ko: L.ko.talkTo + ' · ' + n.ko, en: L.en.talkTo + ' · ' + n.en };
+        }
+      }
     }
     this.promptTarget = best;
+    // NPCs greet with their own topic lines when you walk up to them
+    for (const n of this.activeNpcs()) {
+      if (Math.hypot(n.x - p.x, n.y - p.y) < 2.4 * T && now - (n.lastGreet || 0) > 30000) {
+        n.lastGreet = now;
+        const l = n.lines[n.pi++ % n.lines.length];
+        n.bubble = { ko: l[0], en: l[1], until: now + 3600 };
+      }
+    }
     let near = [];
     if (zone !== 'meeting') {
       near = this.activeNpcs().filter(n => !n.noCall && Math.hypot(n.x - p.x, n.y - p.y) < 2.4 * T).slice(0, 3);
-      near.forEach(n => {
-        if (now - (n.lastGreet || 0) > 30000) { n.lastGreet = now; if (this.chatterOn() && Math.random() < 0.7) { const l = this.pick(this.LINES.greet); n.bubble = { ko: l[0], en: l[1], until: now + 3200 }; } }
-      });
     }
     let meet = [];
     if (zone === 'meeting') meet = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'meeting');
     const focusEnts = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'focus');
     const myStatus = p.sitting ? p.sitting.kind : zone === 'meeting' ? 'meeting' : zone === 'focus' ? 'pomo' : 'online';
-    const pl = Math.max(0, Math.ceil((this.pomo.end - now) / 1000));
-    const sig = JSON.stringify([zone, best && best.id, near.map(n => n.id), meet.map(n => n.id), focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), this.pomo.phase]);
+    const pm = this.getPomo(now);
+    const pl = pm.left;
+    const sig = JSON.stringify([zone, best && best.id, near.map(n => n.id), meet.map(n => n.id), focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
     if (sig !== this.uiSig) {
       this.uiSig = sig;
-      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, near: near.map(n => n.id), meet: meet.map(n => n.id), focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: this.pomo.phase, myStatus } });
+      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, near: near.map(n => n.id), meet: meet.map(n => n.id), focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: pm.phase, myStatus } });
     }
     if (zone !== this.lastZone) {
       if (this.lastZone !== null && zone !== 'hall' && now - this.bootAt > 2500) {
@@ -1356,11 +1559,12 @@ class Component extends DCLogic {
       this.updatePlayer(dt);
       for (const n of this.activeNpcs()) this.updateNpc(n, dt, now);
       this.netTick(now, dt);
-      if (now > this.pomo.end) {
-        const f = this.pomo.phase === 'focus';
-        this.pomo = { phase: f ? 'break' : 'focus', end: now + (f ? 5 : 25) * 60000 };
-        if (this.state.ui.zone === 'focus') this.toast(f ? '🍅 세션 끝! 5분 휴식하세요' : '🍅 다시 집중 시간!', f ? '🍅 Session done! Take 5' : '🍅 Focus time again!');
+      const pm = this.getPomo(now);
+      if (this._pomoPhase && this._pomoPhase !== pm.phase && this.state.ui.zone === 'focus') {
+        const f = pm.phase === 'break';
+        this.toast(f ? '🍅 세션 끝! 5분 휴식하세요' : '🍅 다시 집중 시간!', f ? '🍅 Session done! Take 5' : '🍅 Focus time again!');
       }
+      this._pomoPhase = pm.phase;
       this.syncUI(now);
     }
     this.draw(now);
@@ -1563,6 +1767,11 @@ class Component extends DCLogic {
       .concat(active.map(n => ({ id: n.id, name: lang === 'ko' ? n.ko : n.en, avStyle: pAv(av[n.id], this.shade(n.col, 0.55)), status: stLabel(n.status), dot: dot[n.status] || dot.online })));
     const toasts = (st.toasts || []).map(t => ({ id: t.id, text: lang === 'ko' ? t.ko : t.en }));
     const emojiBtns = this.EMOJI.map((ch, i) => ({ ch, onPick: () => this.playerEmote(i) }));
+    // guestbook
+    const gtime = (iso) => { const d = new Date(iso); return (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const gbEntries = (st.gbEntries || []).map(g => ({ id: g.id, name: g.name, col: g.col || '#8d7ab0', time: gtime(g.created_at), message: g.message }));
+    const gbShowNotice = st.gbStatus !== 'ready' || gbEntries.length === 0;
+    const gbNotice = st.gbStatus === 'loading' ? L.gbLoading : st.gbStatus === 'error' ? L.gbError : L.gbEmpty;
     return {
       canvasRef: this.canvasRef, miniRef: this.miniRef, chatListRef: this.chatListRef, chatInputRef: this.chatInputRef,
       L, isSunset: pr.timeOfDay === 'sunset', isNight: pr.timeOfDay === 'night',
@@ -1583,7 +1792,11 @@ class Component extends DCLogic {
       openChatTab: this.openChatTab, openPeopleTab: this.openPeopleTab, closePanel: this.closePanel,
       messages, chatDraft: st.chatDraft, onChatChange: this.onChatChange, onChatKey: this.onChatKey,
       onChatFocus: this.onChatFocus, onChatBlur: this.onChatBlur, sendChat: this.sendChat,
-      participants, showWelcome: st.showWelcome, dismissWelcome: this.dismissWelcome
+      participants, showWelcome: st.showWelcome, dismissWelcome: this.dismissWelcome,
+      pName: st.pName, onPNameChange: this.onPNameChange,
+      gbOpen: st.gbOpen, gbEntries, gbShowNotice, gbNotice, gbDraft: st.gbDraft,
+      onGbChange: this.onGbChange, onGbKey: this.onGbKey, sendGb: this.sendGb, closeGuestbook: this.closeGuestbook,
+      fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune
     };
   }
 }

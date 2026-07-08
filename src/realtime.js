@@ -34,6 +34,8 @@ window.__townRT = {
           id,
           name: profile.name,
           col: profile.col,
+          style: profile.style,
+          hair: profile.hair,
           x: profile.x,
           y: profile.y,
         });
@@ -44,6 +46,36 @@ window.__townRT = {
       sendMove: (p) => ch.send({ type: "broadcast", event: "move", payload: p }),
       sendChat: (p) => ch.send({ type: "broadcast", event: "chat", payload: p }),
       sendEmote: (p) => ch.send({ type: "broadcast", event: "emote", payload: p }),
+      updateProfile: (profile) =>
+        ch.track({
+          id,
+          name: profile.name,
+          col: profile.col,
+          style: profile.style,
+          hair: profile.hair,
+          x: profile.x,
+          y: profile.y,
+        }),
     };
+  },
+  guestbook: {
+    async list() {
+      if (!client) return { ok: false, error: "no-client", rows: [] };
+      const { data, error } = await client
+        .from("guestbook")
+        .select("id, created_at, name, col, message")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) return { ok: false, error: error.message, rows: [] };
+      return { ok: true, rows: data || [] };
+    },
+    async add(name, col, message) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { error } = await client
+        .from("guestbook")
+        .insert({ name, col, message });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    },
   },
 };
