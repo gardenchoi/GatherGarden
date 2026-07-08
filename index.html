@@ -196,6 +196,40 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ diaryOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);width:420px;max-height:78%;display:flex;flex-direction:column;animation:omPop 0.2s ease-out;">
+        <div style="display:flex;align-items:center;border-bottom:3px solid #241a38;flex:none;">
+          <span style="flex:1;padding:11px 14px;font-size:14px;color:#241a38;">📓 {{ L.diaryTitle }}</span>
+          <span style="font-size:9px;color:#8d7ab0;padding-right:10px;">{{ L.diaryPrivate }}</span>
+          <button onClick="{{ closeDiary }}" style="width:40px;align-self:stretch;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:12px;">✕</button>
+        </div>
+        <div style="flex:none;display:flex;flex-direction:column;border-bottom:3px solid #241a38;background:#fff8e8;">
+          <textarea value="{{ diaryDraft }}" onChange="{{ onDiaryChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.diaryPlaceholder }}" maxLength="2000" style="border:none;outline:none;background:#fff8e8;padding:12px 12px 4px;font-size:12px;color:#241a38;height:74px;resize:none;font-family:inherit;line-height:1.6;"></textarea>
+          <div style="display:flex;justify-content:flex-end;padding:6px 10px 10px;">
+            <button onClick="{{ sendDiary }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:7px 16px;font-size:11px;cursor:pointer;" style-hover="transform:translateY(-1px);" style-active="transform:translateY(1px);">{{ L.diaryWrite }}</button>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;min-height:110px;">
+          <sc-if value="{{ diaryShowNotice }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;font-size:11px;color:#8d7ab0;padding:18px 0;line-height:1.7;">{{ diaryNotice }}</div>
+          </sc-if>
+          <sc-for list="{{ diaryEntries }}" as="d" hint-placeholder-count="3">
+            <div key="{{ d.id }}" style="display:flex;flex-direction:column;gap:3px;">
+              <sc-if value="{{ d.showDate }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:10px;color:#8d7ab0;padding:6px 0 2px;border-bottom:2px solid #e4d5b4;">📅 {{ d.date }}</div>
+              </sc-if>
+              <div style="display:flex;flex-direction:column;gap:2px;background:#f6edd8;border:2px solid #e4d5b4;padding:8px 10px;">
+                <span style="font-size:8px;color:#b3a68f;">{{ d.time }}</span>
+                <div style="font-size:11px;color:#3b3252;line-height:1.6;white-space:pre-wrap;">{{ d.content }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ seatAskOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
       <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:380px;">
@@ -271,6 +305,7 @@ class Component extends DCLogic {
     toasts: [], messages: [],
     pName: '', authReady: false, authUser: null,
     seatMap: {}, mySeatId: null, seatAsk: null,
+    diaryOpen: false, diaryRows: [], diaryStatus: 'loading', diaryDraft: '', diarySending: false,
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
     fortuneOpen: false, fortuneText: '',
     ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
@@ -324,6 +359,8 @@ class Component extends DCLogic {
       fortuneTitle:'오늘의 포춘쿠키', fortuneClose:'냠냠 잘 먹었습니다',
       seatAskTitle:'이 책상을 내 자리로 정할까요?', seatAskDesc:'내 자리로 정하면 다음 접속부터 여기서 시작해요. 나중에 다른 빈 책상으로 옮길 수도 있어요.',
       seatYes:'내 자리로 정하기', seatJust:'그냥 앉기', seatNo:'취소',
+      diaryTitle:'나의 일기장', diaryPrivate:'🔒 나만 볼 수 있어요', diaryPlaceholder:'오늘 하루는 어땠나요? 편하게 적어보세요…',
+      diaryWrite:'저장', diaryLoading:'일기장을 펼치는 중…', diaryEmpty:'아직 일기가 없어요.\n첫 일기를 남겨보세요 ✏️', diaryError:'일기장을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
       talkTo:'말 걸기', gbAct:'방명록 남기기', fortuneAct:'포춘쿠키 뽑기',
       z_meeting:'회의실', z_focus:'뽀모도로 룸', z_cafe:'카페', z_game:'게임 코너', z_work:'오픈 데스크', z_lounge:'라운지', z_hall:'로비',
       st_online:'온라인', st_focus:'집중 중', st_break:'커피 브레이크', st_meeting:'회의 중', st_pomo:'뽀모도로', st_game:'게임 중', st_call:'통화 중', st_relax:'쉬는 중'
@@ -344,6 +381,8 @@ class Component extends DCLogic {
       fortuneTitle:'Fortune Cookie', fortuneClose:'Yum, thanks!',
       seatAskTitle:'Claim this desk as yours?', seatAskDesc:'Your desk is where you\'ll start each visit. You can move to another empty desk later.',
       seatYes:'Claim desk', seatJust:'Just sit', seatNo:'Cancel',
+      diaryTitle:'My Diary', diaryPrivate:'🔒 Only you can read this', diaryPlaceholder:'How was your day? Write freely…',
+      diaryWrite:'Save', diaryLoading:'Opening your diary…', diaryEmpty:'No entries yet.\nWrite your first one ✏️', diaryError:'Couldn\'t load the diary. Please try again later.',
       talkTo:'Talk', gbAct:'Sign the guestbook', fortuneAct:'Crack a fortune cookie',
       z_meeting:'Meeting Room', z_focus:'Pomodoro Room', z_cafe:'Café', z_game:'Game Corner', z_work:'Open Desks', z_lounge:'Lounge', z_hall:'Lobby',
       st_online:'Online', st_focus:'Focusing', st_break:'Coffee break', st_meeting:'In a meeting', st_pomo:'Pomodoro', st_game:'Gaming', st_call:'On a call', st_relax:'Chilling'
@@ -497,6 +536,38 @@ class Component extends DCLogic {
   };
   justSit = () => { const id = this.state.seatAsk; this.setState({ seatAsk: null }); if (id) this.sitAtDesk(id); };
   cancelSeat = () => this.setState({ seatAsk: null });
+
+  // ————— diary (private) —————
+  openDiary = () => {
+    this.setState({ diaryOpen: true, diaryStatus: 'loading', diaryRows: [] });
+    const rt = window.__townRT;
+    if (!rt || !rt.available || !rt.diary) { this.setState({ diaryStatus: 'error' }); return; }
+    rt.diary.list().then(r => {
+      if (!this.state.diaryOpen) return;
+      if (!r.ok) { console.error('diary:', r.error); this.setState({ diaryStatus: 'error' }); }
+      else this.setState({ diaryStatus: 'ready', diaryRows: r.rows });
+    });
+  };
+  closeDiary = () => this.setState({ diaryOpen: false });
+  onDiaryChange = (e) => this.setState({ diaryDraft: e.target.value });
+  sendDiary = () => {
+    const txt = (this.state.diaryDraft || '').trim();
+    if (!txt || this.state.diarySending) return;
+    const rt = window.__townRT;
+    if (!rt || !rt.diary) return;
+    this.setState({ diarySending: true });
+    rt.diary.add(txt).then(r => {
+      if (r.ok) {
+        const row = { id: 'local' + (this.mid++), created_at: new Date().toISOString(), content: txt };
+        this.setState(s => ({ diarySending: false, diaryDraft: '', diaryStatus: 'ready', diaryRows: [row, ...s.diaryRows] }));
+        this.toast('📓 일기를 저장했어요 (나만 볼 수 있어요)', '📓 Diary saved (only you can read it)');
+      } else {
+        console.error('diary:', r.error);
+        this.setState({ diarySending: false });
+        this.toast('⚠️ 저장에 실패했어요. 다시 시도해 주세요', '⚠️ Failed to save. Please retry');
+      }
+    });
+  };
 
   // ————— realtime (Supabase) —————
   initRealtime() {
@@ -712,6 +783,7 @@ class Component extends DCLogic {
       F('desk', dx, ry); F('chair', dx, ry - 1, { dir:'down', v:'#5561d8' });
       SEAT(dx, ry - 1, 'down', 'focus', dx + 1, ry - 1, '앉아서 일하기', 'Sit and work');
       this.inters[this.inters.length - 1].deskId = 'desk_' + dx + '_' + ry;
+      this.inters.push({ id:'pc_' + dx + '_' + ry, act:'pc', deskId:'desk_' + dx + '_' + ry, x:dx + 1, y:ry, r:1.3, ko:'컴퓨터 보기', en:'Check the computer' });
     }
     F('printer', 17, 12); F('shelf', 17, 15); F('wboard', 21, 12);
     F('plant', 1, 11); F('plant', 1, 20, { v:1 }); F('plant', 26, 13, { v:2 }); F('plant', 28, 20);
@@ -1328,8 +1400,8 @@ class Component extends DCLogic {
     if (this.KEYCODE[ev.code]) k = this.KEYCODE[ev.code];
     if (this.typing) return;
     if (this.state.showWelcome) return;
-    if (this.state.gbOpen || this.state.fortuneOpen || this.state.seatAsk) {
-      if (ev.type === 'keydown' && k === 'escape') this.setState({ gbOpen: false, fortuneOpen: false, seatAsk: null });
+    if (this.state.gbOpen || this.state.fortuneOpen || this.state.seatAsk || this.state.diaryOpen) {
+      if (ev.type === 'keydown' && k === 'escape') this.setState({ gbOpen: false, fortuneOpen: false, seatAsk: null, diaryOpen: false });
       return;
     }
     if (ev.type === 'keydown') {
@@ -1502,6 +1574,12 @@ class Component extends DCLogic {
         const n = this.npcById[it.npcReact];
         this.after(700, () => { n.bubble = { ko: it.rko, en: it.ren, until: Date.now() + 3400 }; });
       }
+    } else if (it.act === 'pc') {
+      const owner = this.state.seatMap[it.deskId];
+      const uid = this.state.authUser && this.state.authUser.id;
+      if (!owner) { this.toast('빈 책상이에요. 자리를 정하면 일기장이 생겨요', 'Empty desk. Claim a desk to get a diary'); return; }
+      if (!uid || owner.userId !== uid) { this.toast('🔒 ' + owner.name + ' 님의 컴퓨터예요. 일기는 본인만 볼 수 있어요', '🔒 ' + owner.name + "'s computer. Diaries are private"); return; }
+      this.openDiary();
     } else if (it.act === 'guestbook') {
       this.openGuestbook();
     } else if (it.act === 'fortune') {
@@ -1629,6 +1707,12 @@ class Component extends DCLogic {
       if (owner && uid && owner.userId === uid) promptVal = { ko: '내 자리에 앉기', en: 'Sit at my desk' };
       else if (owner) promptVal = { ko: owner.name + ' 님의 자리', en: owner.name + "'s desk" };
       else if (uid) promptVal = { ko: '빈 책상 · 내 자리로 정하기', en: 'Empty desk · claim it' };
+    }
+    if (best && best.act === 'pc') {
+      const owner = this.state.seatMap[best.deskId];
+      const uid = this.state.authUser && this.state.authUser.id;
+      if (owner && uid && owner.userId === uid) promptVal = { ko: '💻 일기장 열기', en: '💻 Open my diary' };
+      else if (owner) promptVal = { ko: '🔒 ' + owner.name + ' 님의 컴퓨터', en: '🔒 ' + owner.name + "'s computer" };
     }
     const sig = JSON.stringify([zone, best && best.id, promptVal, focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
     if (sig !== this.uiSig) {
@@ -1854,6 +1938,17 @@ class Component extends DCLogic {
       .concat(active.map(n => ({ id: n.id, name: lang === 'ko' ? n.ko : n.en, avStyle: pAv(av[n.id], this.shade(n.col, 0.55)), status: stLabel(n.status), dot: dot[n.status] || dot.online })));
     const toasts = (st.toasts || []).map(t => ({ id: t.id, text: lang === 'ko' ? t.ko : t.en }));
     const emojiBtns = this.EMOJI.map((ch, i) => ({ ch, onPick: () => this.playerEmote(i) }));
+    // diary (grouped by date)
+    let lastDate = null;
+    const diaryEntries = (st.diaryRows || []).map(d => {
+      const dt = new Date(d.created_at);
+      const dateStr = dt.getFullYear() + '.' + (dt.getMonth() + 1) + '.' + dt.getDate();
+      const showDate = dateStr !== lastDate;
+      lastDate = dateStr;
+      return { id: d.id, showDate, date: dateStr, time: String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0'), content: d.content };
+    });
+    const diaryShowNotice = st.diaryStatus !== 'ready' || diaryEntries.length === 0;
+    const diaryNotice = st.diaryStatus === 'loading' ? L.diaryLoading : st.diaryStatus === 'error' ? L.diaryError : L.diaryEmpty;
     // guestbook
     const gtime = (iso) => { const d = new Date(iso); return (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
     const gbEntries = (st.gbEntries || []).map(g => ({ id: g.id, name: g.name, col: g.col || '#8d7ab0', time: gtime(g.created_at), message: g.message }));
@@ -1887,7 +1982,9 @@ class Component extends DCLogic {
       gbOpen: st.gbOpen, gbEntries, gbShowNotice, gbNotice, gbDraft: st.gbDraft,
       onGbChange: this.onGbChange, onGbKey: this.onGbKey, sendGb: this.sendGb, closeGuestbook: this.closeGuestbook,
       fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune,
-      seatAskOpen: !!st.seatAsk, confirmSeat: this.confirmSeat, justSit: this.justSit, cancelSeat: this.cancelSeat
+      seatAskOpen: !!st.seatAsk, confirmSeat: this.confirmSeat, justSit: this.justSit, cancelSeat: this.cancelSeat,
+      diaryOpen: st.diaryOpen, diaryEntries, diaryShowNotice, diaryNotice, diaryDraft: st.diaryDraft,
+      onDiaryChange: this.onDiaryChange, sendDiary: this.sendDiary, closeDiary: this.closeDiary
     };
   }
 }

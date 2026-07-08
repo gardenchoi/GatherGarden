@@ -136,6 +136,27 @@ window.__townRT = {
       return { ok: true };
     },
   },
+  diary: {
+    async list() {
+      if (!client) return { ok: false, error: "no-client", rows: [] };
+      const { data, error } = await client
+        .from("diaries")
+        .select("id, content, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) return { ok: false, error: error.message, rows: [] };
+      return { ok: true, rows: data || [] };
+    },
+    async add(content) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { data } = await client.auth.getSession();
+      const u = data && data.session && data.session.user;
+      if (!u) return { ok: false, error: "not-signed-in" };
+      const { error } = await client.from("diaries").insert({ user_id: u.id, content });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    },
+  },
   guestbook: {
     async list() {
       if (!client) return { ok: false, error: "no-client", rows: [] };
