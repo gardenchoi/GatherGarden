@@ -176,6 +176,18 @@ window.__townRT = {
       if (error) return { ok: false, error: error.message, duplicate: error.code === "23505" };
       return { ok: true };
     },
+    async counts() {
+      if (!client) return { ok: false, error: "no-client", map: {} };
+      const { data, error } = await client.from("stamps").select("user_id, day").limit(2000);
+      if (error) return { ok: false, error: error.message, map: {} };
+      const map = {};
+      for (const r of data || []) {
+        const m = map[r.user_id] || (map[r.user_id] = { count: 0, lastDay: null });
+        m.count++;
+        if (!m.lastDay || r.day > m.lastDay) m.lastDay = r.day;
+      }
+      return { ok: true, map };
+    },
   },
   diary: {
     async list() {

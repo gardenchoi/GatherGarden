@@ -547,6 +547,7 @@ class Component extends DCLogic {
   loadSeats(spawn, uid) {
     const rt = window.__townRT;
     if (!rt || !rt.available || !rt.seats) return;
+    this.loadPlants();
     rt.seats.list().then(r => {
       if (!r.ok || !this._booted) return;
       const map = {};
@@ -591,6 +592,39 @@ class Component extends DCLogic {
   justSit = () => { const id = this.state.seatAsk; this.setState({ seatAsk: null }); if (id) this.sitAtDesk(id); };
   cancelSeat = () => this.setState({ seatAsk: null });
 
+  // ————— desk plants (grow with daily stamps) —————
+  loadPlants() {
+    const rt = window.__townRT;
+    if (!rt || !rt.available || !rt.stamps) return;
+    rt.stamps.counts().then(r => { if (r.ok && this._booted) this.plantInfo = r.map; });
+  }
+
+  plantStage(count) { return count >= 14 ? 4 : count >= 7 ? 3 : count >= 3 ? 2 : count >= 1 ? 1 : 0; }
+  plantWilted(lastDay) {
+    if (!lastDay) return false;
+    const last = new Date(lastDay + 'T00:00:00');
+    return (Date.now() - last.getTime()) / 86400000 > 3;
+  }
+
+  plantSpr(stage, wilted) {
+    const key = 'pp' + stage + (wilted ? 'w' : '');
+    if (this._spr[key]) return this._spr[key];
+    const leaf = wilted ? '#a08a4a' : '#4fa15b';
+    const leafD = wilted ? '#7a6a38' : '#3d8449';
+    const leafH = wilted ? '#b8a05c' : '#5cb85c';
+    const img = this.mkSpr(12, 18, (P) => {
+      P(3,13,6,4,'#b06239'); P(3,13,6,1,'#c97a4a'); P(2,12,8,1,'#8a4a2c');
+      P(4,12,4,1,'#5c3a24');
+      if (stage >= 1) { P(5,10,2,2,leaf); P(4,9,1,2,leafH); P(7,9,1,2,leafD); }
+      if (stage >= 2) { P(5,6,1,4,leafD); P(3,7,2,2,leaf); P(7,6,2,2,leaf); P(5,5,2,1,leafH); }
+      if (stage >= 3) { P(4,2,3,3,wilted ? '#9a7a54' : '#d3699b'); P(5,3,1,1,wilted ? '#7a6044' : '#b3486e'); }
+      if (stage >= 4) { P(3,1,5,4,wilted ? '#9a7a54' : '#e8657f'); P(4,2,3,2,'#ffd93d'); P(2,3,2,2,wilted ? '#8a6a44' : '#e8887a'); P(7,2,2,2,wilted ? '#8a6a44' : '#e8887a'); }
+    });
+    const o = { img: this.outline(img, '#241a38') };
+    this._spr[key] = o;
+    return o;
+  }
+
   // ————— daily stamp (public) —————
   dayStr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   todayStr() { return this.dayStr(new Date()); }
@@ -632,7 +666,8 @@ class Component extends DCLogic {
         const now = new Date();
         const row = { id: 'local' + (this.mid++), user_id: this.state.authUser.id, day: this.todayStr(), message: txt, created_at: now.toISOString(), name: this._netName };
         this.setState(s => ({ stampSending: false, stampDraft: '', stampStatus: 'ready', stampFeed: [row, ...s.stampFeed], myStampDays: [this.todayStr(), ...s.myStampDays] }));
-        this.toast('✅ 출근 도장 완료! 오늘도 파이팅', '✅ Checked in! Have a great day');
+        this.toast('✅ 출근 도장 완료! 책상 위 화분이 자라나요 🌱', '✅ Checked in! Your desk plant grows 🌱');
+        this.loadPlants();
         const p = this.player;
         p.bubble = { ko: '📅 ' + txt, en: '📅 ' + txt, until: Date.now() + 5000 };
         if (this.net) this.net.sendChat({ id: this.net.id, name: this._netName, col: this._netCol, text: '📅 출근 도장: ' + txt });
@@ -1906,8 +1941,16 @@ class Component extends DCLogic {
       if (it.ent) this.drawEnt(g, it.ent);
       else g.drawImage(it.img, it.px, it.topY);
     }
-    // desk nameplates for claimed seats
+    // desk plants (grow with check-in stamps)
     const seatMap = this.state.seatMap || {};
+    const plantInfo = this.plantInfo || {};
+    for (const k of Object.keys(seatMap)) {
+      const m = /^desk_(\d+)_(\d+)$/.exec(k); if (!m) continue;
+      const info = plantInfo[seatMap[k].userId] || { count: 0, lastDay: null };
+      const spr = this.plantSpr(this.plantStage(info.count), this.plantWilted(info.lastDay));
+      g.drawImage(spr.img, (+m[1] + 1) * T + 12, (+m[2] + 1) * T - spr.img.height - 22);
+    }
+    // desk nameplates for claimed seats
     const myUid = this.state.authUser && this.state.authUser.id;
     g.font = '7px Galmuri7, Galmuri9, monospace'; g.textAlign = 'left'; g.textBaseline = 'middle';
     for (const k of Object.keys(seatMap)) {
@@ -1915,7 +1958,7 @@ class Component extends DCLogic {
       const s = seatMap[k];
       const label = '🪑 ' + s.name;
       const w = g.measureText(label).width + 8;
-      const px = Math.round((+m[1] + 1) * T - w / 2), py = (+m[2]) * T + 2;
+      const px = Math.round((+m[1] + 1) * T - w / 2), py = (+m[2] + 1) * T - 11;
       g.fillStyle = (myUid && s.userId === myUid) ? 'rgba(226,87,76,0.95)' : 'rgba(36,26,56,0.88)';
       g.fillRect(px, py, w, 11);
       g.fillStyle = '#ffe9b8';
