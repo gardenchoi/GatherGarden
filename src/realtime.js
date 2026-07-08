@@ -136,6 +136,47 @@ window.__townRT = {
       return { ok: true };
     },
   },
+  stamps: {
+    async feed() {
+      if (!client) return { ok: false, error: "no-client", rows: [] };
+      const { data, error } = await client
+        .from("stamps")
+        .select("id, user_id, day, message, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) return { ok: false, error: error.message, rows: [] };
+      const ids = [...new Set((data || []).map((r) => r.user_id))];
+      const names = {};
+      if (ids.length) {
+        const { data: profs } = await client.from("profiles").select("id, name").in("id", ids);
+        (profs || []).forEach((p) => { names[p.id] = p.name; });
+      }
+      return { ok: true, rows: (data || []).map((r) => ({ ...r, name: names[r.user_id] || "주민" })) };
+    },
+    async mine() {
+      if (!client) return { ok: false, error: "no-client", days: [] };
+      const { data: s } = await client.auth.getSession();
+      const u = s && s.session && s.session.user;
+      if (!u) return { ok: false, error: "not-signed-in", days: [] };
+      const { data, error } = await client
+        .from("stamps")
+        .select("day")
+        .eq("user_id", u.id)
+        .order("day", { ascending: false })
+        .limit(400);
+      if (error) return { ok: false, error: error.message, days: [] };
+      return { ok: true, days: (data || []).map((r) => r.day) };
+    },
+    async add(message) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { data: s } = await client.auth.getSession();
+      const u = s && s.session && s.session.user;
+      if (!u) return { ok: false, error: "not-signed-in" };
+      const { error } = await client.from("stamps").insert({ user_id: u.id, message });
+      if (error) return { ok: false, error: error.message, duplicate: error.code === "23505" };
+      return { ok: true };
+    },
+  },
   diary: {
     async list() {
       if (!client) return { ok: false, error: "no-client", rows: [] };
