@@ -247,10 +247,10 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{
-  &quot;npcCount&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 8, &quot;min&quot;: 0, &quot;max&quot;: 8, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;월드&quot; },
-  &quot;timeOfDay&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;day&quot;, &quot;options&quot;: [&quot;day&quot;, &quot;sunset&quot;, &quot;night&quot;], &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;월드&quot; },
-  &quot;npcChatter&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;월드&quot; },
-  &quot;playerSpeed&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 3.4, &quot;min&quot;: 2, &quot;max&quot;: 6, &quot;step&quot;: 0.2, &quot;unit&quot;: &quot;타일/초&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;플레이어&quot; }
+  "npcCount": { "editor": "range", "default": 8, "min": 0, "max": 8, "step": 1, "tsType": "number", "section": "월드" },
+  "timeOfDay": { "editor": "enum", "default": "day", "options": ["day", "sunset", "night"], "tsType": "string", "section": "월드" },
+  "npcChatter": { "editor": "boolean", "default": true, "tsType": "boolean", "section": "월드" },
+  "playerSpeed": { "editor": "range", "default": 3.4, "min": 2, "max": 6, "step": 0.2, "unit": "타일/초", "tsType": "number", "section": "플레이어" }
 }">
 class Component extends DCLogic {
   state = {
@@ -325,6 +325,8 @@ class Component extends DCLogic {
     this.buildEntities();
     this.buildStatic();
     this.makeAvatars();
+    this.loadMeSprite();
+    this.loadNpcSprites();
     this.pomo = { phase:'focus', end: Date.now() + 25*60*1000 };
     this.bootAt = Date.now(); this.lastZone = null; this.uiSig = ''; this.lastSync = 0; this.lastMini = 0;
     window.addEventListener('keydown', this.onKey);
@@ -849,6 +851,44 @@ class Component extends DCLogic {
     }
   }
 
+  loadMeSprite() {
+    const im = new Image();
+    im.onload = () => {
+      const F = (i) => { const cv = this.mk(32, 56); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(im, i * 32, 0, 32, 56, 0, 0, 32, 56); return cv; };
+      const L = [F(6), F(7), F(8)], Ls = F(11);
+      this._meSet = {
+        down: [F(0), F(1), F(2)],
+        up: [F(3), F(4), F(5)],
+        left: L,
+        right: [this.mirror(L[0]), this.mirror(L[1]), this.mirror(L[2])],
+        sit: { down: F(9), up: F(10), left: Ls, right: this.mirror(Ls) }
+      };
+      if (this.charSpr) { this.charSpr.me = this._meSet; this.makeAvatars(); this.forceUpdate(); }
+    };
+    im.src = './me-sprite.png';
+  }
+
+  loadNpcSprites() {
+    const im = new Image();
+    im.onload = () => {
+      const ids = ['latte', 'jay', 'matcha', 'mimosa', 'pingu', 'conan', 'donut', 'tofu'];
+      this._npcSets = {};
+      ids.forEach((id, row) => {
+        const F = (i) => { const cv = this.mk(32, 56); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(im, i * 32, row * 56, 32, 56, 0, 0, 32, 56); return cv; };
+        const L = [F(6), F(7), F(8)], Ls = F(11);
+        this._npcSets[id] = {
+          down: [F(0), F(1), F(2)],
+          up: [F(3), F(4), F(5)],
+          left: L,
+          right: [this.mirror(L[0]), this.mirror(L[1]), this.mirror(L[2])],
+          sit: { down: F(9), up: F(10), left: Ls, right: this.mirror(Ls) }
+        };
+      });
+      if (this.charSpr) { Object.assign(this.charSpr, this._npcSets); this.makeAvatars(); this.forceUpdate(); }
+    };
+    im.src = './npc-sprites.png';
+  }
+
   // ————— static map layer —————
   buildStatic() {
     const T = this.T, W = this.MW, H = this.MH;
@@ -1185,6 +1225,8 @@ class Component extends DCLogic {
       this._artV = 7; this._spr = {};
       this.charSpr = { me: this.mkSet({ skin: '#f0c8a0', hair: '#2c2438', style: 'spiky', shirt: '#e2574c', pants: '#3d4a6b' }) };
       this.npcs.forEach(n => { this.charSpr[n.id] = this.mkSet({ skin: n.skin, hair: n.hair, style: n.style, shirt: n.shirt, pants: n.pants, cap: n.cap, bag: n.bag }); });
+      if (this._meSet) this.charSpr.me = this._meSet;
+      if (this._npcSets) Object.assign(this.charSpr, this._npcSets);
       this.makeDeco(); this.makeAvatars(); this.forceUpdate();
     }
     const dt = Math.min(0.05, (now - (this._lt || now)) / 1000);

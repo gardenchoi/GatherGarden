@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
-      __GATHERGARDEN_SUPABASE_URL__: JSON.stringify(supabaseUrl),
-      __GATHERGARDEN_SUPABASE_ANON_KEY__: JSON.stringify(supabaseAnonKey),
+      __TOWN_SUPABASE_URL__: JSON.stringify(supabaseUrl),
+      __TOWN_SUPABASE_ANON_KEY__: JSON.stringify(supabaseAnonKey),
     },
   };
 });
