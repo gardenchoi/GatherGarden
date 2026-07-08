@@ -196,6 +196,21 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ seatAskOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:380px;">
+        <div style="font-size:36px;">🪑</div>
+        <div style="font-size:14px;color:#241a38;">{{ L.seatAskTitle }}</div>
+        <div style="font-size:11px;color:#8d7ab0;text-align:center;line-height:1.7;">{{ L.seatAskDesc }}</div>
+        <div style="display:flex;gap:8px;">
+          <button onClick="{{ confirmSeat }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:10px 16px;font-size:12px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">{{ L.seatYes }}</button>
+          <button onClick="{{ justSit }}" style="background:#ffe9b8;color:#241a38;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:10px 16px;font-size:12px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">{{ L.seatJust }}</button>
+          <button onClick="{{ cancelSeat }}" style="background:#f6edd8;color:#8d5050;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:10px 16px;font-size:12px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">{{ L.seatNo }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ fortuneOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
       <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:24px 28px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:omPop 0.2s ease-out;max-width:380px;">
@@ -255,6 +270,7 @@ class Component extends DCLogic {
     chatDraft: '', emojiOpen: false, showWelcome: true,
     toasts: [], messages: [],
     pName: '', authReady: false, authUser: null,
+    seatMap: {}, mySeatId: null, seatAsk: null,
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
     fortuneOpen: false, fortuneText: '',
     ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
@@ -306,6 +322,8 @@ class Component extends DCLogic {
       gbTitle:'재택타운 방명록', gbPlaceholder:'한마디 남겨주세요…', gbWrite:'남기기',
       gbLoading:'방명록을 불러오는 중…', gbEmpty:'아직 글이 없어요.\n첫 번째 방명록을 남겨보세요! ✍️', gbError:'방명록을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
       fortuneTitle:'오늘의 포춘쿠키', fortuneClose:'냠냠 잘 먹었습니다',
+      seatAskTitle:'이 책상을 내 자리로 정할까요?', seatAskDesc:'내 자리로 정하면 다음 접속부터 여기서 시작해요. 나중에 다른 빈 책상으로 옮길 수도 있어요.',
+      seatYes:'내 자리로 정하기', seatJust:'그냥 앉기', seatNo:'취소',
       talkTo:'말 걸기', gbAct:'방명록 남기기', fortuneAct:'포춘쿠키 뽑기',
       z_meeting:'회의실', z_focus:'뽀모도로 룸', z_cafe:'카페', z_game:'게임 코너', z_work:'오픈 데스크', z_lounge:'라운지', z_hall:'로비',
       st_online:'온라인', st_focus:'집중 중', st_break:'커피 브레이크', st_meeting:'회의 중', st_pomo:'뽀모도로', st_game:'게임 중', st_call:'통화 중', st_relax:'쉬는 중'
@@ -324,6 +342,8 @@ class Component extends DCLogic {
       gbTitle:'WFH Town Guestbook', gbPlaceholder:'Leave a note…', gbWrite:'Post',
       gbLoading:'Loading the guestbook…', gbEmpty:'No notes yet.\nBe the first to sign! ✍️', gbError:'Couldn\'t load the guestbook. Please try again later.',
       fortuneTitle:'Fortune Cookie', fortuneClose:'Yum, thanks!',
+      seatAskTitle:'Claim this desk as yours?', seatAskDesc:'Your desk is where you\'ll start each visit. You can move to another empty desk later.',
+      seatYes:'Claim desk', seatJust:'Just sit', seatNo:'Cancel',
       talkTo:'Talk', gbAct:'Sign the guestbook', fortuneAct:'Crack a fortune cookie',
       z_meeting:'Meeting Room', z_focus:'Pomodoro Room', z_cafe:'Café', z_game:'Game Corner', z_work:'Open Desks', z_lounge:'Lounge', z_hall:'Lobby',
       st_online:'Online', st_focus:'Focusing', st_break:'Coffee break', st_meeting:'In a meeting', st_pomo:'Pomodoro', st_game:'Gaming', st_call:'On a call', st_relax:'Chilling'
@@ -395,7 +415,7 @@ class Component extends DCLogic {
       if (!rt.available) { this.setState({ authReady: true }); return; }
       rt.auth.getUser().then(async (u) => {
         if (!this._booted) return;
-        if (!u) { this.setState({ authReady: true, authUser: null }); return; }
+        if (!u) { this.setState({ authReady: true, authUser: null }); this.loadSeats(false); return; }
         let prof = null;
         try { prof = await rt.auth.getProfile(u.id); } catch (e) {}
         const name = ((prof && prof.name) || u.googleName || '주민').slice(0, 10);
@@ -403,6 +423,7 @@ class Component extends DCLogic {
         this.profile = { name };
         try { localStorage.setItem('town-profile', JSON.stringify(this.profile)); } catch (e) {}
         this.applyProfile();
+        this.loadSeats(true, u.id);
       }).catch(() => this.setState({ authReady: true }));
       rt.auth.onChange((loggedIn) => {
         if (!loggedIn && this.state.authUser) window.location.reload();
@@ -428,6 +449,54 @@ class Component extends DCLogic {
     const rt = window.__townRT;
     if (rt && rt.available) rt.auth.signOut().then(() => window.location.reload());
   };
+
+  // ————— seats —————
+  loadSeats(spawn, uid) {
+    const rt = window.__townRT;
+    if (!rt || !rt.available || !rt.seats) return;
+    rt.seats.list().then(r => {
+      if (!r.ok || !this._booted) return;
+      const map = {};
+      r.rows.forEach(s => { map[s.seatId] = s; });
+      const myId = uid || (this.state.authUser && this.state.authUser.id);
+      const mine = myId ? (r.rows.find(s => s.userId === myId) || null) : null;
+      this.setState({ seatMap: map, mySeatId: mine ? mine.seatId : null });
+      if (spawn && mine && !this._seatSpawned) {
+        this._seatSpawned = true;
+        this.sitAtDesk(mine.seatId);
+      }
+    });
+  }
+
+  sitAtDesk(deskId) {
+    const it = this.inters.find(i => i.deskId === deskId);
+    if (!it || !this.player) return;
+    const T = this.T, p = this.player;
+    p.sitting = { kind: it.kind, ex: (it.ex + 0.5) * T, ey: (it.ey + 0.5) * T };
+    p.x = (it.sx + 0.5) * T; p.y = (it.sy + 0.85) * T; p.dir = it.sdir; p.moving = false;
+  }
+
+  confirmSeat = () => {
+    const id = this.state.seatAsk;
+    this.setState({ seatAsk: null });
+    if (!id) return;
+    const rt = window.__townRT;
+    if (!rt || !rt.available) return;
+    rt.seats.claim(id).then(r => {
+      if (r.ok) {
+        this.toast('🪑 내 자리로 정했어요! 다음부터 여기서 시작해요', '🪑 Desk claimed! You\'ll start here next time');
+        this.sitAtDesk(id);
+      } else if ((r.error || '').indexOf('duplicate') >= 0 || (r.error || '').indexOf('pkey') >= 0) {
+        this.toast('앗, 방금 다른 분이 먼저 찜한 자리예요', 'Oops, someone just claimed that desk');
+      } else {
+        console.error('seat claim:', r.error);
+        this.toast('⚠️ 자리 저장에 실패했어요', '⚠️ Failed to claim the desk');
+      }
+      this.loadSeats(false);
+    });
+  };
+  justSit = () => { const id = this.state.seatAsk; this.setState({ seatAsk: null }); if (id) this.sitAtDesk(id); };
+  cancelSeat = () => this.setState({ seatAsk: null });
 
   // ————— realtime (Supabase) —————
   initRealtime() {
@@ -511,6 +580,7 @@ class Component extends DCLogic {
     if (added && this.net) {
       const p = this.player;
       this.net.sendMove({ id: this.net.id, x: p.x, y: p.y, dir: p.dir, moving: false });
+      this.loadSeats(false);
     }
   }
 
@@ -640,7 +710,8 @@ class Component extends DCLogic {
     // open desks
     for (const ry of [12, 15, 18]) for (const dx of [4, 8, 12]) {
       F('desk', dx, ry); F('chair', dx, ry - 1, { dir:'down', v:'#5561d8' });
-      if (!(dx === 8 && ry === 15)) SEAT(dx, ry - 1, 'down', 'focus', dx + 1, ry - 1, '앉아서 일하기', 'Sit and work');
+      SEAT(dx, ry - 1, 'down', 'focus', dx + 1, ry - 1, '앉아서 일하기', 'Sit and work');
+      this.inters[this.inters.length - 1].deskId = 'desk_' + dx + '_' + ry;
     }
     F('printer', 17, 12); F('shelf', 17, 15); F('wboard', 21, 12);
     F('plant', 1, 11); F('plant', 1, 20, { v:1 }); F('plant', 26, 13, { v:2 }); F('plant', 28, 20);
@@ -1257,8 +1328,8 @@ class Component extends DCLogic {
     if (this.KEYCODE[ev.code]) k = this.KEYCODE[ev.code];
     if (this.typing) return;
     if (this.state.showWelcome) return;
-    if (this.state.gbOpen || this.state.fortuneOpen) {
-      if (ev.type === 'keydown' && k === 'escape') this.setState({ gbOpen: false, fortuneOpen: false });
+    if (this.state.gbOpen || this.state.fortuneOpen || this.state.seatAsk) {
+      if (ev.type === 'keydown' && k === 'escape') this.setState({ gbOpen: false, fortuneOpen: false, seatAsk: null });
       return;
     }
     if (ev.type === 'keydown') {
@@ -1410,6 +1481,18 @@ class Component extends DCLogic {
     const it = this.promptTarget; if (!it) return;
     const T = this.T;
     if (it.act === 'sit') {
+      if (it.deskId) {
+        const owner = this.state.seatMap[it.deskId];
+        const uid = this.state.authUser && this.state.authUser.id;
+        if (owner && (!uid || owner.userId !== uid)) {
+          this.toast('🪑 ' + owner.name + ' 님의 자리예요', '🪑 This is ' + owner.name + "'s desk");
+          return;
+        }
+        if (!owner && uid && this.state.mySeatId !== it.deskId) {
+          this.setState({ seatAsk: it.deskId });
+          return;
+        }
+      }
       p.sitting = { kind: it.kind, ex: (it.ex + 0.5) * T, ey: (it.ey + 0.5) * T };
       p.x = (it.sx + 0.5) * T; p.y = (it.sy + 0.85) * T; p.dir = it.sdir; p.moving = false;
     } else if (it.act === 'toast') {
@@ -1539,10 +1622,18 @@ class Component extends DCLogic {
     const myStatus = p.sitting ? p.sitting.kind : zone === 'meeting' ? 'meeting' : zone === 'focus' ? 'pomo' : 'online';
     const pm = this.getPomo(now);
     const pl = pm.left;
-    const sig = JSON.stringify([zone, best && best.id, focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
+    let promptVal = best ? { ko: best.ko, en: best.en } : null;
+    if (best && best.act === 'sit' && best.deskId) {
+      const owner = this.state.seatMap[best.deskId];
+      const uid = this.state.authUser && this.state.authUser.id;
+      if (owner && uid && owner.userId === uid) promptVal = { ko: '내 자리에 앉기', en: 'Sit at my desk' };
+      else if (owner) promptVal = { ko: owner.name + ' 님의 자리', en: owner.name + "'s desk" };
+      else if (uid) promptVal = { ko: '빈 책상 · 내 자리로 정하기', en: 'Empty desk · claim it' };
+    }
+    const sig = JSON.stringify([zone, best && best.id, promptVal, focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
     if (sig !== this.uiSig) {
       this.uiSig = sig;
-      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: pm.phase, myStatus } });
+      this.setState({ ui: { zone, prompt: promptVal, focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: pm.phase, myStatus } });
     }
     if (zone !== this.lastZone) {
       if (this.lastZone !== null && zone !== 'hall' && now - this.bootAt > 2500) {
@@ -1618,6 +1709,22 @@ class Component extends DCLogic {
       if (it.ent) this.drawEnt(g, it.ent);
       else g.drawImage(it.img, it.px, it.topY);
     }
+    // desk nameplates for claimed seats
+    const seatMap = this.state.seatMap || {};
+    const myUid = this.state.authUser && this.state.authUser.id;
+    g.font = '7px Galmuri7, Galmuri9, monospace'; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const k of Object.keys(seatMap)) {
+      const m = /^desk_(\d+)_(\d+)$/.exec(k); if (!m) continue;
+      const s = seatMap[k];
+      const label = '🪑 ' + s.name;
+      const w = g.measureText(label).width + 8;
+      const px = Math.round((+m[1] + 1) * T - w / 2), py = (+m[2]) * T + 2;
+      g.fillStyle = (myUid && s.userId === myUid) ? 'rgba(226,87,76,0.95)' : 'rgba(36,26,56,0.88)';
+      g.fillRect(px, py, w, 11);
+      g.fillStyle = '#ffe9b8';
+      g.fillText(label, px + 4, py + 6);
+    }
+    g.textBaseline = 'alphabetic';
     if (this.promptTarget && !p.sitting) this.drawMarker(g, now);
     const lang = this.state.lang;
     for (const e of ents) this.drawTag(g, e, lang);
@@ -1779,7 +1886,8 @@ class Component extends DCLogic {
       startLabel: st.authUser ? L.startBtn : L.startGuest,
       gbOpen: st.gbOpen, gbEntries, gbShowNotice, gbNotice, gbDraft: st.gbDraft,
       onGbChange: this.onGbChange, onGbKey: this.onGbKey, sendGb: this.sendGb, closeGuestbook: this.closeGuestbook,
-      fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune
+      fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune,
+      seatAskOpen: !!st.seatAsk, confirmSeat: this.confirmSeat, justSit: this.justSit, cancelSeat: this.cancelSeat
     };
   }
 }

@@ -102,6 +102,40 @@ window.__townRT = {
         }),
     };
   },
+  seats: {
+    async list() {
+      if (!client) return { ok: false, error: "no-client", rows: [] };
+      const { data, error } = await client.from("seats").select("seat_id, user_id");
+      if (error) return { ok: false, error: error.message, rows: [] };
+      const ids = (data || []).map((r) => r.user_id);
+      const names = {};
+      if (ids.length) {
+        const { data: profs } = await client
+          .from("profiles")
+          .select("id, name")
+          .in("id", ids);
+        (profs || []).forEach((p) => { names[p.id] = p.name; });
+      }
+      return {
+        ok: true,
+        rows: (data || []).map((r) => ({
+          seatId: r.seat_id,
+          userId: r.user_id,
+          name: names[r.user_id] || "주민",
+        })),
+      };
+    },
+    async claim(seatId) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { data } = await client.auth.getSession();
+      const u = data && data.session && data.session.user;
+      if (!u) return { ok: false, error: "not-signed-in" };
+      await client.from("seats").delete().eq("user_id", u.id);
+      const { error } = await client.from("seats").insert({ seat_id: seatId, user_id: u.id });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    },
+  },
   guestbook: {
     async list() {
       if (!client) return { ok: false, error: "no-client", rows: [] };
