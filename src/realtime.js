@@ -18,6 +18,50 @@ function sessionId() {
 
 window.__townRT = {
   available: !!client,
+  auth: {
+    async getUser() {
+      if (!client) return null;
+      const { data } = await client.auth.getSession();
+      const u = data && data.session && data.session.user;
+      if (!u) return null;
+      return {
+        id: u.id,
+        email: u.email,
+        googleName:
+          (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || "",
+      };
+    },
+    onChange(cb) {
+      if (!client) return;
+      client.auth.onAuthStateChange((_event, session) => cb(session && session.user ? true : false));
+    },
+    signInGoogle() {
+      if (!client) return;
+      return client.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + window.location.pathname },
+      });
+    },
+    signOut() {
+      if (!client) return Promise.resolve();
+      return client.auth.signOut();
+    },
+    async getProfile(id) {
+      if (!client) return null;
+      const { data } = await client
+        .from("profiles")
+        .select("id, name")
+        .eq("id", id)
+        .maybeSingle();
+      return data || null;
+    },
+    async saveProfile(id, name) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { error } = await client.from("profiles").upsert({ id, name });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    },
+  },
   join(profile, handlers) {
     if (!client) return null;
     const id = sessionId();

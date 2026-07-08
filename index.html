@@ -212,13 +212,32 @@
       <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:20px 26px;display:flex;flex-direction:column;align-items:center;gap:11px;animation:omPop 0.2s ease-out;max-width:470px;">
         <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.4);padding:9px 18px;font-size:19px;letter-spacing:2px;">{{ L.roomName }}</div>
         <div style="font-size:11px;color:#8d7ab0;">{{ L.welcomeSub }}</div>
-        <div style="display:flex;align-items:center;gap:10px;background:#fff8e8;border:3px solid #241a38;padding:13px 16px;">
-          <span style="font-size:11px;color:#3b3252;flex:none;">{{ L.pNameLabel }}</span>
-          <input value="{{ pName }}" onChange="{{ onPNameChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.pNameHint }}" maxLength="10" style="border:2px solid #241a38;outline:none;background:#f6edd8;padding:8px 10px;font-size:12px;color:#241a38;width:200px;">
-        </div>
+        <sc-if value="{{ authLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11px;color:#8d7ab0;background:#fff8e8;border:3px solid #241a38;padding:13px 22px;">{{ L.authLoading }}</div>
+        </sc-if>
+        <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:9px;background:#fff8e8;border:3px solid #241a38;padding:14px 18px;">
+            <button onClick="{{ onLogin }}" style="display:flex;align-items:center;gap:9px;background:#fff;color:#241a38;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:10px 18px;font-size:12px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">
+              <span style="font-size:14px;">🔑</span><span>{{ L.loginGoogle }}</span>
+            </button>
+            <div style="font-size:9px;color:#8d7ab0;">{{ L.loginWhy }}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showNameRow }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px;background:#fff8e8;border:3px solid #241a38;padding:13px 16px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:11px;color:#3b3252;flex:none;">{{ L.pNameLabel }}</span>
+              <input value="{{ pName }}" onChange="{{ onPNameChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.pNameHint }}" maxLength="10" style="border:2px solid #241a38;outline:none;background:#f6edd8;padding:8px 10px;font-size:12px;color:#241a38;width:200px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:9px;color:#8d7ab0;">
+              <span>✅ {{ authEmail }}</span>
+              <button onClick="{{ onLogout }}" style="background:#f6edd8;border:2px solid #241a38;cursor:pointer;padding:3px 8px;font-size:9px;color:#8d5050;">{{ L.logout }}</button>
+            </div>
+          </div>
+        </sc-if>
         <div style="font-size:10px;color:#3b3252;text-align:center;background:#fff8e8;border:3px solid #241a38;padding:8px 14px;line-height:1.8;">⌨️ {{ L.ctrlLine }}</div>
         <div style="font-size:10px;color:#8d7ab0;text-align:center;line-height:1.6;">💡 {{ L.tip }}</div>
-        <button onClick="{{ dismissWelcome }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:12px 24px;font-size:13px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">▶ {{ L.startBtn }}</button>
+        <button onClick="{{ dismissWelcome }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);padding:12px 24px;font-size:13px;cursor:pointer;" style-hover="transform:translateY(-2px);" style-active="transform:translateY(2px);box-shadow:0 1px 0 rgba(36,26,56,0.75);">▶ {{ startLabel }}</button>
       </div>
     </div>
   </sc-if>
@@ -235,7 +254,7 @@ class Component extends DCLogic {
     ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0,
     chatDraft: '', emojiOpen: false, showWelcome: true,
     toasts: [], messages: [],
-    pName: '', pCol: '#e2574c', pStyle: 'spiky', pHair: '#2c2438',
+    pName: '', authReady: false, authUser: null,
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
     fortuneOpen: false, fortuneText: '',
     ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
@@ -282,6 +301,8 @@ class Component extends DCLogic {
       ctrlEmote:'이모지 리액션', ctrlChat:'채팅 열기', startBtn:'입장하기', tip:'NPC에게 다가가 E를 누르면 말을 걸 수 있어요. 로비 방명록과 카페 포춘쿠키도 잊지 마세요!',
       ctrlLine:'WASD 이동 · E 상호작용/대화 · 1~6 이모지 · Enter 채팅',
       pPreview:'내 아바타', pNameLabel:'내 이름', pNameHint:'이름을 입력하세요', pColor:'옷', pHair:'머리', pStyle:'스타일',
+      authLoading:'로그인 확인 중…', loginGoogle:'구글로 로그인', loginWhy:'로그인하면 자리 선택·일기·출근 도장을 쓸 수 있어요. 로그인 없이도 구경은 가능!',
+      logout:'로그아웃', startGuest:'로그인 없이 구경하기', needLogin:'🔒 로그인 후 이용할 수 있어요',
       gbTitle:'재택타운 방명록', gbPlaceholder:'한마디 남겨주세요…', gbWrite:'남기기',
       gbLoading:'방명록을 불러오는 중…', gbEmpty:'아직 글이 없어요.\n첫 번째 방명록을 남겨보세요! ✍️', gbError:'방명록을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
       fortuneTitle:'오늘의 포춘쿠키', fortuneClose:'냠냠 잘 먹었습니다',
@@ -298,6 +319,8 @@ class Component extends DCLogic {
       ctrlEmote:'Emoji reaction', ctrlChat:'Open chat', startBtn:'Enter town', tip:'Walk up to an NPC and press E to chat. Don\'t miss the lobby guestbook and café fortune cookies!',
       ctrlLine:'WASD move · E interact/talk · 1-6 emoji · Enter chat',
       pPreview:'My avatar', pNameLabel:'My name', pNameHint:'Enter your name', pColor:'Top', pHair:'Hair', pStyle:'Style',
+      authLoading:'Checking sign-in…', loginGoogle:'Sign in with Google', loginWhy:'Sign in to claim a desk, write diaries and daily stamps. Browsing works without it!',
+      logout:'Sign out', startGuest:'Browse as guest', needLogin:'🔒 Sign in to use this',
       gbTitle:'WFH Town Guestbook', gbPlaceholder:'Leave a note…', gbWrite:'Post',
       gbLoading:'Loading the guestbook…', gbEmpty:'No notes yet.\nBe the first to sign! ✍️', gbError:'Couldn\'t load the guestbook. Please try again later.',
       fortuneTitle:'Fortune Cookie', fortuneClose:'Yum, thanks!',
@@ -357,10 +380,54 @@ class Component extends DCLogic {
     this.after(1800, () => { const n = this.npcById.latte; if (n && this.isActive(n)) this.say(n, ['커피 머신 새로 들어왔어요. 카페로 오세요 ☕','New coffee machine just landed. Come by the café ☕']); });
     this.after(3400, () => { const n = this.npcById.jay; if (n && this.isActive(n)) this.say(n, ['3시 주간 싱크는 회의실 A에서 해요!','Weekly sync at 3pm in Meeting Room A!']); });
     this.setState({ ready: true });
+    this.initAuth();
     this.initRealtime();
     this._loop = () => { try { this.tick(); } catch(e) { console.error(e); } this._raf = requestAnimationFrame(this._loop); };
     this._raf = requestAnimationFrame(this._loop);
   }
+
+  // ————— auth (Supabase Google) —————
+  initAuth() {
+    const tryA = () => {
+      if (!this._booted) return;
+      const rt = window.__townRT;
+      if (!rt) { this.after(300, tryA); return; }
+      if (!rt.available) { this.setState({ authReady: true }); return; }
+      rt.auth.getUser().then(async (u) => {
+        if (!this._booted) return;
+        if (!u) { this.setState({ authReady: true, authUser: null }); return; }
+        let prof = null;
+        try { prof = await rt.auth.getProfile(u.id); } catch (e) {}
+        const name = ((prof && prof.name) || u.googleName || '주민').slice(0, 10);
+        this.setState({ authReady: true, authUser: { id: u.id, email: u.email || '' }, pName: name });
+        this.profile = { name };
+        try { localStorage.setItem('town-profile', JSON.stringify(this.profile)); } catch (e) {}
+        this.applyProfile();
+      }).catch(() => this.setState({ authReady: true }));
+      rt.auth.onChange((loggedIn) => {
+        if (!loggedIn && this.state.authUser) window.location.reload();
+      });
+    };
+    tryA();
+  }
+
+  isAuthed() { return !!this.state.authUser; }
+  requireLogin() {
+    if (this.isAuthed()) return true;
+    this.toast(this.I18N.ko.needLogin, this.I18N.en.needLogin);
+    return false;
+  }
+
+  onLogin = () => {
+    const rt = window.__townRT;
+    if (!rt || !rt.available) { this.toast('⚠️ 서버 연결이 없어 로그인할 수 없어요', '⚠️ No server connection'); return; }
+    rt.auth.signInGoogle();
+  };
+
+  onLogout = () => {
+    const rt = window.__townRT;
+    if (rt && rt.available) rt.auth.signOut().then(() => window.location.reload());
+  };
 
   // ————— realtime (Supabase) —————
   initRealtime() {
@@ -1221,10 +1288,14 @@ class Component extends DCLogic {
 
   dismissWelcome = () => {
     const st = this.state;
-    const prof = { name: (st.pName || '').trim().slice(0, 10) };
-    this.profile = prof;
-    try { localStorage.setItem('town-profile', JSON.stringify(prof)); } catch (e) {}
-    this.applyProfile();
+    if (st.authUser) {
+      const prof = { name: (st.pName || '').trim().slice(0, 10) || '주민' };
+      this.profile = prof;
+      try { localStorage.setItem('town-profile', JSON.stringify(prof)); } catch (e) {}
+      this.applyProfile();
+      const rt = window.__townRT;
+      if (rt && rt.available) rt.auth.saveProfile(st.authUser.id, prof.name);
+    }
     this.setState({ showWelcome: false });
   };
 
@@ -1254,6 +1325,7 @@ class Component extends DCLogic {
   onGbChange = (e) => this.setState({ gbDraft: e.target.value });
   onGbKey = (e) => { if (e.key === 'Enter') this.sendGb(); if (e.key === 'Escape') e.target.blur(); };
   sendGb = () => {
+    if (!this.requireLogin()) return;
     const txt = (this.state.gbDraft || '').trim();
     if (!txt || this.state.gbSending) return;
     const rt = window.__townRT;
@@ -1702,6 +1774,9 @@ class Component extends DCLogic {
       onChatFocus: this.onChatFocus, onChatBlur: this.onChatBlur, sendChat: this.sendChat,
       participants, showWelcome: st.showWelcome, dismissWelcome: this.dismissWelcome,
       pName: st.pName, onPNameChange: this.onPNameChange,
+      authLoading: !st.authReady, showLogin: st.authReady && !st.authUser, showNameRow: !!st.authUser,
+      authEmail: st.authUser ? st.authUser.email : '', onLogin: this.onLogin, onLogout: this.onLogout,
+      startLabel: st.authUser ? L.startBtn : L.startGuest,
       gbOpen: st.gbOpen, gbEntries, gbShowNotice, gbNotice, gbDraft: st.gbDraft,
       onGbChange: this.onGbChange, onGbKey: this.onGbKey, sendGb: this.sendGb, closeGuestbook: this.closeGuestbook,
       fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune
