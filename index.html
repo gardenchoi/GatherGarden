@@ -59,65 +59,6 @@
     <canvas ref="{{ miniRef }}" style="display:block;width:184px;height:120px;image-rendering:pixelated;"></canvas>
   </div>
 
-  <sc-if value="{{ inMeeting }}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fff8e8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);padding:10px;animation:omDrop 0.2s ease-out;pointer-events:none;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="width:9px;height:9px;background:#d94f4f;border:2px solid #241a38;animation:omBlink 1.2s steps(1) infinite;"></span>
-        <span style="font-size:13px;color:#241a38;">📋 {{ L.meetingRoom }} · {{ L.meetingTitle }}</span>
-        <span style="font-size:9px;color:#8d7ab0;">{{ L.leaveHint }}</span>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <sc-for list="{{ meetTiles }}" as="v" hint-placeholder-count="3">
-          <div key="{{ v.id }}" style="width:172px;height:118px;border:3px solid #241a38;position:relative;overflow:hidden;background:{{ v.bg }};">
-            <sc-if value="{{ v.camOn }}" hint-placeholder-val="{{ false }}">
-              <span style="{{ v.avBig }}"></span>
-              <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 4px);"></div>
-            </sc-if>
-            <sc-if value="{{ v.camOff }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute;inset:0;background:#241a38;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-                <span style="{{ v.avDim }}"></span>
-                <span style="font-size:9px;color:#8d7ab0;">{{ L.camOffL }}</span>
-              </div>
-            </sc-if>
-            <div style="position:absolute;left:4px;bottom:4px;background:rgba(16,11,32,0.82);color:#fff8e8;font-size:9px;padding:3px 6px;display:flex;align-items:center;gap:4px;">
-              <sc-if value="{{ v.muted }}" hint-placeholder-val="{{ false }}"><span>🔇</span></sc-if>
-              <span>{{ v.name }}</span>
-            </div>
-          </div>
-        </sc-for>
-      </div>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ showNearby }}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;animation:omDrop 0.2s ease-out;pointer-events:none;">
-      <div style="background:#241a38;border:3px solid #100b20;color:#9fe3a8;font-size:10px;padding:5px 10px;display:flex;gap:6px;align-items:center;">
-        <span style="width:8px;height:8px;background:#58b368;border:2px solid #100b20;animation:omBlink 1.4s steps(1) infinite;"></span>
-        <span>{{ L.nearbyCall }}</span>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <sc-for list="{{ nearTiles }}" as="v" hint-placeholder-count="2">
-          <div key="{{ v.id }}" style="width:148px;height:102px;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.5);position:relative;overflow:hidden;background:{{ v.bg }};">
-            <sc-if value="{{ v.camOn }}" hint-placeholder-val="{{ false }}">
-              <span style="{{ v.avSmall }}"></span>
-              <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.05) 0 2px,transparent 2px 4px);"></div>
-            </sc-if>
-            <sc-if value="{{ v.camOff }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute;inset:0;background:#241a38;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;">
-                <span style="{{ v.avDim }}"></span>
-                <span style="font-size:9px;color:#8d7ab0;">{{ L.camOffL }}</span>
-              </div>
-            </sc-if>
-            <div style="position:absolute;left:4px;bottom:4px;background:rgba(16,11,32,0.82);color:#fff8e8;font-size:9px;padding:2px 6px;display:flex;align-items:center;gap:4px;">
-              <sc-if value="{{ v.muted }}" hint-placeholder-val="{{ false }}"><span>🔇</span></sc-if>
-              <span>{{ v.name }}</span>
-            </div>
-          </div>
-        </sc-for>
-      </div>
-    </div>
-  </sc-if>
-
   <sc-if value="{{ inFocus }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fff8e8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);padding:12px 18px;animation:omDrop 0.2s ease-out;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;">
       <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#241a38;">
@@ -292,7 +233,7 @@
 class Component extends DCLogic {
   state = {
     ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0,
-    chatDraft: '', emojiOpen: false, showWelcome: true, micOn: true, camOn: true,
+    chatDraft: '', emojiOpen: false, showWelcome: true,
     toasts: [], messages: [],
     pName: '', pCol: '#e2574c', pStyle: 'spiky', pHair: '#2c2438',
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
@@ -1271,8 +1212,6 @@ class Component extends DCLogic {
   onWinBlur = () => { if (this.keys) this.keys.clear(); };
 
   // ————— actions —————
-  toggleMic = () => this.setState(s => ({ micOn: !s.micOn }));
-  toggleCam = () => this.setState(s => ({ camOn: !s.camOn }));
   toggleEmoji = () => this.setState(s => ({ emojiOpen: !s.emojiOpen }));
   openChatTab = () => this.setState(s => ({ panelOpen: !(s.panelOpen && s.tab === 'chat'), tab: 'chat', unread: 0 }));
   openPeopleTab = () => this.setState(s => ({ panelOpen: !(s.panelOpen && s.tab === 'people'), tab: 'people' }));
@@ -1524,20 +1463,14 @@ class Component extends DCLogic {
         n.bubble = { ko: l[0], en: l[1], until: now + 3600 };
       }
     }
-    let near = [];
-    if (zone !== 'meeting') {
-      near = this.activeNpcs().filter(n => !n.noCall && Math.hypot(n.x - p.x, n.y - p.y) < 2.4 * T).slice(0, 3);
-    }
-    let meet = [];
-    if (zone === 'meeting') meet = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'meeting');
     const focusEnts = this.activeNpcs().filter(n => this.zoneAt((n.x / T) | 0, (n.y / T) | 0) === 'focus');
     const myStatus = p.sitting ? p.sitting.kind : zone === 'meeting' ? 'meeting' : zone === 'focus' ? 'pomo' : 'online';
     const pm = this.getPomo(now);
     const pl = pm.left;
-    const sig = JSON.stringify([zone, best && best.id, near.map(n => n.id), meet.map(n => n.id), focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
+    const sig = JSON.stringify([zone, best && best.id, focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
     if (sig !== this.uiSig) {
       this.uiSig = sig;
-      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, near: near.map(n => n.id), meet: meet.map(n => n.id), focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: pm.phase, myStatus } });
+      this.setState({ ui: { zone, prompt: best ? { ko: best.ko, en: best.en } : null, focus: focusEnts.map(n => n.id), pomoLeft: pl, pomoPhase: pm.phase, myStatus } });
     }
     if (zone !== this.lastZone) {
       if (this.lastZone !== null && zone !== 'hall' && now - this.bootAt > 2500) {
@@ -1710,34 +1643,7 @@ class Component extends DCLogic {
     const dot = this.STATUS_DOT;
     const stLabel = (k) => L['st_' + k] || k;
     const pr = this.props || {};
-    const mkAv = (url, size, abs) => {
-      const s = { width: size + 'px', height: size + 'px', imageRendering: 'pixelated' };
-      if (abs) { s.position = 'absolute'; s.left = '50%'; s.top = '52%'; s.animation = 'omBob 2.4s ease-in-out infinite'; }
-      else { s.opacity = 0.45; }
-      if (url) { s.backgroundImage = 'url("' + url + '")'; s.backgroundSize = 'cover'; }
-      return s;
-    };
-    const tile = (id) => {
-      const me = id === 'me';
-      const n = me ? null : npcById[id];
-      const u = me ? av.me : av[id];
-      const col = me ? '#e2574c' : (n ? n.col : '#5561d8');
-      return {
-        id,
-        name: me ? L.you : (n ? (lang === 'ko' ? n.ko : n.en) : ''),
-        camOn: me ? st.camOn : (n ? n.camOn !== false : true),
-        camOff: me ? !st.camOn : (n ? n.camOn === false : false),
-        muted: me ? !st.micOn : false,
-        bg: this.vidBg(col),
-        avBig: mkAv(u, 72, true), avSmall: mkAv(u, 60, true), avDim: mkAv(u, 40, false)
-      };
-    };
-    const nearT = (ui.near || []).map(tile);
-    const nearTiles = [tile('me')].concat(nearT);
-    const meetTiles = [tile('me')].concat((ui.meet || []).map(tile));
-    const inMeeting = ui.zone === 'meeting';
     const inFocus = ui.zone === 'focus';
-    const showNearby = !inMeeting && !inFocus && nearT.length > 0;
     const total = ui.pomoPhase === 'break' ? 300 : 1500;
     const pl = ui.pomoLeft != null ? ui.pomoLeft : 1500;
     const pomoClock = String((pl / 60) | 0).padStart(2, '0') + ':' + String(pl % 60).padStart(2, '0');
@@ -1752,8 +1658,6 @@ class Component extends DCLogic {
       showBadge: !!(badge && badge > 0), badge: badge > 9 ? '9+' : String(badge || ''), showOff: !!off
     });
     const toolbarBtns = [
-      mkBtn('mic', '🎤', L.mic, st.micOn, !st.micOn, this.toggleMic),
-      mkBtn('cam', '📹', L.cam, st.camOn, !st.camOn, this.toggleCam),
       mkBtn('emo', '😀', L.react, st.emojiOpen, false, this.toggleEmoji),
       mkBtn('chat', '💬', L.chat, st.panelOpen && st.tab === 'chat', false, this.openChatTab, st.unread),
       mkBtn('ppl', '👥', L.people, st.panelOpen && st.tab === 'people', false, this.openPeopleTab),
@@ -1782,7 +1686,7 @@ class Component extends DCLogic {
       avatarsReady: !!(this.avatars && this.avatars.me),
       onlineCount: 1 + active.length + Object.keys(this.remotes || {}).length,
       zoneLabel: L['z_' + (ui.zone || 'hall')] || L.z_hall,
-      inMeeting, inFocus, showNearby, meetTiles, nearTiles,
+      inFocus,
       pomoPhaseBg: phCol, pomoPhaseLabel: ui.pomoPhase === 'break' ? L.breakPhase : L.focusPhase,
       pomoClock, pomoCells, pomoMembers: focusNames.join(', ') || L.you,
       showPrompt: !!ui.prompt && !st.emojiOpen, promptLabel: ui.prompt ? (lang === 'ko' ? ui.prompt.ko : ui.prompt.en) : '',
