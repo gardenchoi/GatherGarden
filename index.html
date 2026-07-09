@@ -42,6 +42,7 @@
     <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%, transparent 32%, rgba(10,6,30,0.4) 100%);"></div>
   </sc-if>
 
+  <sc-if value="{{ hudOn }}" hint-placeholder-val="{{ true }}">
   <div style="position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:8px;pointer-events:none;">
     <div style="display:flex;align-items:center;gap:8px;">
       <div style="background:#e2574c;color:#fff8e8;border:3px solid #241a38;box-shadow:3px 3px 0 rgba(12,8,24,0.55);padding:8px 12px;font-size:16px;letter-spacing:1px;">{{ L.roomName }}</div>
@@ -89,12 +90,6 @@
       </sc-for>
     </div>
   </sc-if>
-
-  <div style="position:absolute;bottom:170px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;">
-    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="1">
-      <div key="{{ t.id }}" style="background:#241a38;color:#ffe9b8;border:3px solid #100b20;box-shadow:3px 3px 0 rgba(12,8,24,0.5);padding:8px 14px;font-size:12px;animation:omPop 0.18s ease-out;">{{ t.text }}</div>
-    </sc-for>
-  </div>
 
   <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;gap:8px;">
     <div style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:6px 10px;">
@@ -335,6 +330,63 @@
       </div>
     </div>
   </sc-if>
+  </sc-if>
+
+  <div style="position:absolute;bottom:170px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="1">
+      <div key="{{ t.id }}" style="background:#241a38;color:#ffe9b8;border:3px solid #100b20;box-shadow:3px 3px 0 rgba(12,8,24,0.5);padding:8px 14px;font-size:12px;animation:omPop 0.18s ease-out;">{{ t.text }}</div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ widgetOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:10px;display:flex;flex-direction:column;align-items:center;gap:7px;">
+      <sc-if value="{{ wPickOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:5px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:7px;animation:omPop 0.15s ease-out;">
+          <sc-for list="{{ wOptions }}" as="o" hint-placeholder-count="4">
+            <button key="{{ o.id }}" onClick="{{ o.onPick }}" style="display:flex;align-items:center;gap:8px;background:{{ o.bg }};border:2px solid #241a38;cursor:pointer;padding:7px 10px;font-size:11px;color:#241a38;justify-content:flex-start;" style-hover="background:#ffe9b8;">
+              <span style="font-size:14px;">{{ o.icon }}</span><span>{{ o.label }}</span>
+              <sc-if value="{{ o.showResume }}" hint-placeholder-val="{{ false }}">
+                <span style="background:#e8a33d;color:#fff8e8;border:2px solid #241a38;font-size:9px;padding:2px 6px;">↩ {{ o.resumeLabel }}</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <button onClick="{{ wToggle }}" style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:8px 14px;cursor:pointer;font-size:12px;color:#241a38;" style-hover="background:#ffe9b8;">
+        <span style="width:8px;height:8px;border:2px solid #241a38;background:{{ wDotColor }};display:inline-block;"></span>
+        <span>{{ wStatusIcon }} {{ wStatusLabel }}</span>
+        <sc-if value="{{ wShowTimer }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size:14px;letter-spacing:1px;color:#241a38;">{{ wTimer }}</span>
+        </sc-if>
+        <span style="font-size:9px;color:#8d7ab0;">▾</span>
+      </button>
+      <sc-if value="{{ wHint }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:9px;color:#ffe9b8;background:rgba(24,17,40,0.85);border:2px solid #241a38;padding:3px 8px;">{{ wHintText }}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ wLoading }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;">
+      <div style="background:rgba(24,17,40,0.85);color:#ffe9b8;border:2px solid #241a38;padding:6px 12px;font-size:10px;">…</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ wNeedLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:6px 6px 0 rgba(12,8,24,0.6);padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:230px;">
+        <div style="font-size:26px;">🔑</div>
+        <div style="font-size:11px;color:#3b3252;text-align:center;line-height:1.7;">{{ wLoginHint }}</div>
+        <button onClick="{{ onLogin }}" style="background:#fff;color:#241a38;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:8px 14px;font-size:11px;cursor:pointer;">{{ L.loginGoogle }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ wNeedSeat }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;top:10px;display:flex;justify-content:center;pointer-events:none;">
+      <div style="background:rgba(24,17,40,0.85);color:#ffe9b8;border:2px solid #241a38;padding:5px 10px;font-size:10px;">🪑 {{ wSeatHint }}</div>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{
@@ -354,6 +406,7 @@ class Component extends DCLogic {
     stampOpen: false, stampFeed: [], stampStatus: 'loading', stampDraft: '', stampSending: false, myStampDays: [],
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
     fortuneOpen: false, fortuneText: '',
+    work: null, workLoaded: false, wPick: false,
     ui: { zone: 'hall', prompt: null, near: [], meet: [], focus: [], pomoLeft: 1500, pomoPhase: 'focus', myStatus: 'online' }
   };
 
@@ -470,6 +523,7 @@ class Component extends DCLogic {
   componentDidMount() {
     if (this._booted) return;
     this._booted = true;
+    this.widget = /[?&]widget=1/.test(window.location.search);
     this.keys = new Set(); this.typing = false; this.emotes = []; this.tmrs = []; this.mid = 1; this._spr = {};
     this.remotes = {};
     this.profile = this.loadProfile();
@@ -489,12 +543,15 @@ class Component extends DCLogic {
     if (cv && cv.parentElement) this.ro.observe(cv.parentElement);
     this.resize();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try { this.buildStatic(); } catch(e){} });
-    this.after(700, () => this.pushMsg({ id:this.mid++, sys:true, ko:'재택타운에 입장했어요. 환영해요! 🎉', en:'You joined WFH Town. Welcome! 🎉', time:this.tstr() }));
-    this.after(1800, () => { const n = this.npcById.latte; if (n && this.isActive(n)) this.say(n, ['커피 머신 새로 들어왔어요. 카페로 오세요 ☕','New coffee machine just landed. Come by the café ☕']); });
-    this.after(3400, () => { const n = this.npcById.jay; if (n && this.isActive(n)) this.say(n, ['3시 주간 싱크는 회의실 A에서 해요!','Weekly sync at 3pm in Meeting Room A!']); });
-    this.setState({ ready: true });
+    if (!this.widget) {
+      this.after(700, () => this.pushMsg({ id:this.mid++, sys:true, ko:'재택타운에 입장했어요. 환영해요! 🎉', en:'You joined WFH Town. Welcome! 🎉', time:this.tstr() }));
+      this.after(1800, () => { const n = this.npcById.latte; if (n && this.isActive(n)) this.say(n, ['커피 머신 새로 들어왔어요. 카페로 오세요 ☕','New coffee machine just landed. Come by the café ☕']); });
+      this.after(3400, () => { const n = this.npcById.jay; if (n && this.isActive(n)) this.say(n, ['3시 주간 싱크는 회의실 A에서 해요!','Weekly sync at 3pm in Meeting Room A!']); });
+    }
+    this.setState({ ready: true, showWelcome: !this.widget });
     this.initAuth();
-    this.initRealtime();
+    if (!this.widget) this.initRealtime();
+    if (this.widget) this._wTimer = setInterval(() => { if (this._booted) this.forceUpdate(); }, 1000);
     this._loop = () => { try { this.tick(); } catch(e) { console.error(e); } this._raf = requestAnimationFrame(this._loop); };
     this._raf = requestAnimationFrame(this._loop);
   }
@@ -517,6 +574,7 @@ class Component extends DCLogic {
         try { localStorage.setItem('town-profile', JSON.stringify(this.profile)); } catch (e) {}
         this.applyProfile();
         this.loadSeats(true, u.id);
+        if (this.widget) this.loadWork();
       }).catch(() => this.setState({ authReady: true }));
       rt.auth.onChange((loggedIn) => {
         if (!loggedIn && this.state.authUser) window.location.reload();
@@ -623,6 +681,69 @@ class Component extends DCLogic {
     const o = { img: this.outline(img, '#241a38') };
     this._spr[key] = o;
     return o;
+  }
+
+  // ————— work status (widget mode) —————
+  WORK_STATUSES = [
+    { id: 'before', icon: '🌅', ko: '출근 전', en: 'Before work', dot: '#b3a68f', timer: false },
+    { id: 'working', icon: '💼', ko: '일하는 중', en: 'Working', dot: '#58b368', timer: true },
+    { id: 'resting', icon: '☕', ko: '쉬는 중', en: 'On break', dot: '#e8a33d', timer: true },
+    { id: 'done', icon: '🌙', ko: '퇴근 후', en: 'Off work', dot: '#8d7ab0', timer: false }
+  ];
+  WORK_COOLDOWN_MS = 180000;
+
+  loadWork() {
+    const rt = window.__townRT;
+    if (!rt || !rt.available || !rt.work) return;
+    rt.work.get().then(r => {
+      if (!this._booted) return;
+      const row = r.ok && r.row ? r.row : null;
+      const work = row ? {
+        status: row.status,
+        startedAt: new Date(row.started_at).getTime(),
+        prevStatus: row.prev_status || null,
+        prevElapsedMs: row.prev_elapsed_ms != null ? +row.prev_elapsed_ms : null,
+        changedAt: row.changed_at ? new Date(row.changed_at).getTime() : 0
+      } : { status: 'before', startedAt: Date.now(), prevStatus: null, prevElapsedMs: null, changedAt: 0 };
+      this.setState({ work, workLoaded: true });
+    });
+  }
+
+  canResume(w, id, now) {
+    return !!(w && w.prevStatus === id && w.prevElapsedMs != null && (now - w.changedAt) < this.WORK_COOLDOWN_MS);
+  }
+
+  setWork = (next) => {
+    const w = this.state.work;
+    if (!w || next === w.status) { this.setState({ wPick: false }); return; }
+    const now = Date.now();
+    const startedAt = this.canResume(w, next, now) ? now - w.prevElapsedMs : now;
+    const nw = { status: next, startedAt, prevStatus: w.status, prevElapsedMs: now - w.startedAt, changedAt: now };
+    this.setState({ work: nw, wPick: false });
+    const rt = window.__townRT;
+    if (rt && rt.available && rt.work) {
+      rt.work.save({
+        status: nw.status,
+        started_at: new Date(nw.startedAt).toISOString(),
+        prev_status: nw.prevStatus,
+        prev_elapsed_ms: nw.prevElapsedMs,
+        changed_at: new Date(nw.changedAt).toISOString()
+      }).then(r => {
+        if (!r.ok) {
+          console.error('work save:', r.error);
+          this.toast('⚠️ 상태 저장에 실패했어요', '⚠️ Failed to save status');
+        }
+      });
+    }
+  };
+
+  toggleWPick = () => this.setState(s => ({ wPick: !s.wPick }));
+
+  fmtDur(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    const p = (n) => String(n).padStart(2, '0');
+    return h > 0 ? h + ':' + p(m) + ':' + p(sec) : p(m) + ':' + p(sec);
   }
 
   // ————— daily stamp (public) —————
@@ -847,6 +968,7 @@ class Component extends DCLogic {
     window.removeEventListener('blur', this.onWinBlur);
     if (this.ro) this.ro.disconnect();
     (this.tmrs || []).forEach(clearTimeout);
+    if (this._wTimer) clearInterval(this._wTimer);
     this._booted = false;
   }
 
@@ -1542,6 +1664,7 @@ class Component extends DCLogic {
   KEYCODE = { KeyW:'w', KeyA:'a', KeyS:'s', KeyD:'d', KeyE:'e', Digit1:'1', Digit2:'2', Digit3:'3', Digit4:'4', Digit5:'5', Digit6:'6' };
 
   onKey = (ev) => {
+    if (this.widget) return;
     let k = (ev.key || '').toLowerCase();
     if (this.KEYCODE[ev.code]) k = this.KEYCODE[ev.code];
     if (this.typing) return;
@@ -1900,7 +2023,7 @@ class Component extends DCLogic {
       this.syncUI(now);
     }
     this.draw(now);
-    if (now - this.lastMini > 200) { this.lastMini = now; this.drawMini(now); }
+    if (!this.widget && now - this.lastMini > 200) { this.lastMini = now; this.drawMini(now); }
   }
 
   // ————— render —————
@@ -1919,7 +2042,7 @@ class Component extends DCLogic {
     if (!cv || !this._staticC || !this.player) return;
     const g = cv.getContext('2d');
     const dpr = this.dpr || 1;
-    const Z = 2;
+    const Z = this.widget ? 3 : 2;
     const vw = cv.width / (dpr * Z), vh = cv.height / (dpr * Z);
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.fillStyle = '#161022'; g.fillRect(0, 0, cv.width, cv.height);
@@ -1927,8 +2050,10 @@ class Component extends DCLogic {
     const T = this.T, mw = this.MW * T, mh = this.MH * T;
     const p = this.player;
     let cx = p.x - vw / 2, cy = p.y - vh / 2 - 16;
-    cx = vw >= mw ? -(vw - mw) / 2 : Math.max(0, Math.min(mw - vw, cx));
-    cy = vh >= mh ? -(vh - mh) / 2 : Math.max(0, Math.min(mh - vh, cy));
+    if (!this.widget) {
+      cx = vw >= mw ? -(vw - mw) / 2 : Math.max(0, Math.min(mw - vw, cx));
+      cy = vh >= mh ? -(vh - mh) / 2 : Math.max(0, Math.min(mh - vh, cy));
+    }
     cx = Math.round(cx); cy = Math.round(cy);
     g.setTransform(dpr * Z, 0, 0, dpr * Z, Math.round(-cx * dpr * Z), Math.round(-cy * dpr * Z));
     g.drawImage(this._staticC, 0, 0);
@@ -2123,7 +2248,40 @@ class Component extends DCLogic {
     const gbEntries = (st.gbEntries || []).map(g => ({ id: g.id, name: g.name, col: g.col || '#8d7ab0', time: gtime(g.created_at), message: g.message }));
     const gbShowNotice = st.gbStatus !== 'ready' || gbEntries.length === 0;
     const gbNotice = st.gbStatus === 'loading' ? L.gbLoading : st.gbStatus === 'error' ? L.gbError : L.gbEmpty;
+    // widget mode (work status + timer)
+    const widget = !!this.widget;
+    const w = st.work;
+    const wNow = Date.now();
+    const wMeta = w ? this.WORK_STATUSES.find(x => x.id === w.status) : null;
+    const wOptions = (widget && w) ? this.WORK_STATUSES.map(x => ({
+      id: x.id,
+      icon: x.icon,
+      label: lang === 'ko' ? x.ko : x.en,
+      bg: x.id === w.status ? '#ffe9b8' : '#f6edd8',
+      onPick: () => this.setWork(x.id),
+      showResume: x.timer && this.canResume(w, x.id, wNow),
+      resumeLabel: this.canResume(w, x.id, wNow) ? this.fmtDur(w.prevElapsedMs) : ''
+    })) : [];
+    const wCooldown = widget && w && w.changedAt && (wNow - w.changedAt) < this.WORK_COOLDOWN_MS && w.prevStatus &&
+      (this.WORK_STATUSES.find(x => x.id === w.prevStatus) || {}).timer;
     return {
+      hudOn: !widget,
+      widgetOn: widget && st.workLoaded && !!w,
+      wStatusIcon: wMeta ? wMeta.icon : '',
+      wStatusLabel: wMeta ? (lang === 'ko' ? wMeta.ko : wMeta.en) : '',
+      wDotColor: wMeta ? wMeta.dot : '#b3a68f',
+      wShowTimer: !!(wMeta && wMeta.timer),
+      wTimer: (wMeta && wMeta.timer && w) ? this.fmtDur(wNow - w.startedAt) : '',
+      wPickOpen: st.wPick,
+      wOptions,
+      wToggle: this.toggleWPick,
+      wHint: !!(wCooldown && !st.wPick),
+      wHintText: lang === 'ko' ? '↩ 3분 안에 돌아오면 이어서 계속돼요' : '↩ Switch back within 3 min to resume',
+      wNeedLogin: widget && st.authReady && !st.authUser,
+      wLoading: widget && (!st.authReady || (!!st.authUser && !st.workLoaded)),
+      wNeedSeat: widget && !!st.authUser && st.workLoaded && !st.mySeatId,
+      wLoginHint: lang === 'ko' ? '재택타운에 먼저 로그인해 주세요' : 'Please sign in to WFH Town first',
+      wSeatHint: lang === 'ko' ? '본체 화면에서 내 자리를 먼저 정해 주세요' : 'Claim your desk in the main app first',
       canvasRef: this.canvasRef, miniRef: this.miniRef, chatListRef: this.chatListRef, chatInputRef: this.chatInputRef,
       L, isSunset: pr.timeOfDay === 'sunset', isNight: pr.timeOfDay === 'night',
       avatarsReady: !!(this.avatars && this.avatars.me),

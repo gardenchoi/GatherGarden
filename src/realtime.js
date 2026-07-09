@@ -210,6 +210,32 @@ window.__townRT = {
       return { ok: true };
     },
   },
+  work: {
+    async get() {
+      if (!client) return { ok: false, error: "no-client", row: null };
+      const { data: s } = await client.auth.getSession();
+      const u = s && s.session && s.session.user;
+      if (!u) return { ok: false, error: "not-signed-in", row: null };
+      const { data, error } = await client
+        .from("work_status")
+        .select("status, started_at, prev_status, prev_elapsed_ms, changed_at")
+        .eq("user_id", u.id)
+        .maybeSingle();
+      if (error) return { ok: false, error: error.message, row: null };
+      return { ok: true, row: data || null };
+    },
+    async save(row) {
+      if (!client) return { ok: false, error: "no-client" };
+      const { data: s } = await client.auth.getSession();
+      const u = s && s.session && s.session.user;
+      if (!u) return { ok: false, error: "not-signed-in" };
+      const { error } = await client
+        .from("work_status")
+        .upsert({ user_id: u.id, ...row });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    },
+  },
   guestbook: {
     async list() {
       if (!client) return { ok: false, error: "no-client", rows: [] };
