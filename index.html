@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>재택타운 - WFH TOWN</title>
+<title>GatherGarden</title>
 <script type="module" src="/src/realtime.js"></script>
 <script src="./support.js"></script>
 </head>
@@ -28,7 +28,7 @@
   ::-webkit-scrollbar-track { background:transparent; }
 </style>
 </helmet>
-<div data-screen-label="재택타운 월드" style="position:fixed;inset:0;background:#161022;overflow:hidden;">
+<div data-screen-label="GatherGarden 월드" style="position:fixed;inset:0;background:#161022;overflow:hidden;">
 
   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5d4d7a;font-size:14px;letter-spacing:3px;">LOADING TOWN…</div>
   <canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;"></canvas>
@@ -92,10 +92,10 @@
   </sc-if>
 
   <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;gap:8px;">
-    <div style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:6px 10px;">
+    <div onClick="{{ openRename }}" title="{{ L.renameTitle }}" style="display:flex;align-items:center;gap:8px;background:#fff8e8;border:3px solid #241a38;box-shadow:4px 4px 0 rgba(12,8,24,0.55);padding:6px 10px;cursor:pointer;" style-hover="background:#ffe9b8;">
       <span style="{{ myAvatarStyle }}"></span>
       <div style="display:flex;flex-direction:column;gap:3px;">
-        <span style="font-size:12px;color:#241a38;">{{ L.you }}</span>
+        <span style="font-size:12px;color:#241a38;">{{ L.you }} <span style="font-size:9px;">✏️</span></span>
         <span style="display:flex;align-items:center;gap:4px;font-size:9px;color:#8d7ab0;">
           <span style="width:7px;height:7px;border:1px solid #241a38;background:{{ myStatusColor }};display:inline-block;"></span>
           <span>{{ myStatusLabel }}</span>
@@ -115,6 +115,15 @@
       </button>
     </sc-for>
   </div>
+
+  <sc-if value="{{ showJoy }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;right:16px;bottom:110px;display:flex;flex-direction:column;align-items:center;gap:14px;">
+      <button onClick="{{ tryInteractBtn }}" style="width:64px;height:64px;border-radius:50%;background:#ffe9b8;border:4px solid #241a38;box-shadow:0 4px 0 rgba(36,26,56,0.75);font-size:22px;color:#241a38;cursor:pointer;font-family:inherit;">E</button>
+      <div ref="{{ joyBaseRef }}" style="width:124px;height:124px;border-radius:50%;background:rgba(36,26,56,0.35);border:4px solid rgba(36,26,56,0.75);display:flex;align-items:center;justify-content:center;touch-action:none;">
+        <div ref="{{ joyKnobRef }}" style="width:54px;height:54px;border-radius:50%;background:#ffe9b8;border:4px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.6);"></div>
+      </div>
+    </div>
+  </sc-if>
 
   <sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;top:14px;right:14px;bottom:92px;width:302px;background:#f6edd8;border:4px solid #241a38;box-shadow:5px 5px 0 rgba(12,8,24,0.55);display:flex;flex-direction:column;animation:omSlideR 0.18s ease-out;">
@@ -238,33 +247,136 @@
 
   <sc-if value="{{ diaryOpen }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
-      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);width:420px;max-height:78%;display:flex;flex-direction:column;animation:omPop 0.2s ease-out;">
-        <div style="display:flex;align-items:center;border-bottom:3px solid #241a38;flex:none;">
-          <span style="flex:1;padding:11px 14px;font-size:14px;color:#241a38;">📓 {{ L.diaryTitle }}</span>
-          <span style="font-size:9px;color:#8d7ab0;padding-right:10px;">{{ L.diaryPrivate }}</span>
-          <button onClick="{{ closeDiary }}" style="width:40px;align-self:stretch;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:12px;">✕</button>
-        </div>
-        <div style="flex:none;display:flex;flex-direction:column;border-bottom:3px solid #241a38;background:#fff8e8;">
-          <textarea value="{{ diaryDraft }}" onChange="{{ onDiaryChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.diaryPlaceholder }}" maxLength="2000" style="border:none;outline:none;background:#fff8e8;padding:12px 12px 4px;font-size:12px;color:#241a38;height:74px;resize:none;font-family:inherit;line-height:1.6;"></textarea>
-          <div style="display:flex;justify-content:flex-end;padding:6px 10px 10px;">
-            <button onClick="{{ sendDiary }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:7px 16px;font-size:11px;cursor:pointer;" style-hover="transform:translateY(-1px);" style-active="transform:translateY(1px);">{{ L.diaryWrite }}</button>
+
+      <sc-if value="{{ diaryDeskMode }}" hint-placeholder-val="{{ false }}">
+        <div style="width:min(94vw,780px);height:min(88vh,600px);display:flex;flex-direction:column;background:linear-gradient(#f6e0b2,#f0d29c);border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);position:relative;overflow:hidden;animation:omPop 0.2s ease-out;">
+          <div style="position:absolute;left:26px;top:22px;width:104px;height:140px;background:#2c2a4e;border:6px solid #8a5a3c;outline:3px solid #241a38;">
+            <div style="position:absolute;left:50%;top:0;bottom:0;width:5px;margin-left:-2px;background:#8a5a3c;"></div>
+            <div style="position:absolute;top:50%;left:0;right:0;height:5px;margin-top:-2px;background:#8a5a3c;"></div>
+            <div style="position:absolute;left:14px;top:16px;width:4px;height:4px;background:#fff8e8;opacity:0.8;"></div>
+            <div style="position:absolute;right:18px;top:38px;width:3px;height:3px;background:#fff8e8;opacity:0.6;"></div>
+            <div style="position:absolute;left:30px;top:66px;width:3px;height:3px;background:#fff8e8;opacity:0.5;"></div>
+          </div>
+          <div style="position:absolute;right:30px;top:26px;width:66px;height:80px;background:#fff3d4;border:6px solid #8a5a3c;outline:3px solid #241a38;display:flex;align-items:center;justify-content:center;font-size:24px;">🌱</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;z-index:1;padding-top:14px;min-height:0;">
+            <div style="width:min(82%,560px);flex:1;min-height:0;display:flex;flex-direction:column;background:#2b2440;border:4px solid #241a38;box-shadow:7px 7px 0 rgba(12,8,24,0.35);padding:8px 8px 10px;position:relative;">
+              <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:#fff8e8;border:2px solid #241a38;overflow:hidden;">
+                <div style="display:flex;align-items:center;background:#3d7a48;border-bottom:3px solid #241a38;flex:none;">
+                  <span style="flex:1;padding:9px 12px;font-size:12px;color:#fff8e8;">🌱 {{ dashTitle }}</span>
+                  <span style="font-size:9px;color:#cfe8c4;padding-right:9px;">{{ dashDate }}</span>
+                  <sc-if value="{{ dashShowStreak }}" hint-placeholder-val="{{ false }}">
+                    <span style="background:#e8a33d;color:#fff8e8;border:2px solid #241a38;font-size:9px;padding:2px 7px;margin-right:8px;">🔥 {{ stampStreakLabel }}</span>
+                  </sc-if>
+                  <button onClick="{{ closeDiary }}" style="width:34px;align-self:stretch;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:11px;">✕</button>
+                </div>
+                <sc-if value="{{ diaryCanWrite }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:none;display:flex;flex-direction:column;border-bottom:3px solid #241a38;background:#fff8e8;">
+                  <textarea value="{{ diaryDraft }}" onChange="{{ onDiaryChange }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.diaryPlaceholder }}" maxLength="2000" style="border:none;outline:none;background:#fff8e8;padding:11px 12px 4px;font-size:12px;color:#241a38;height:62px;resize:none;font-family:inherit;line-height:1.6;"></textarea>
+                  <div style="display:flex;justify-content:flex-end;padding:5px 10px 9px;">
+                    <button onClick="{{ sendDiary }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:6px 15px;font-size:11px;cursor:pointer;" style-hover="transform:translateY(-1px);" style-active="transform:translateY(1px);">{{ L.diaryWrite }}</button>
+                  </div>
+                </div>
+                </sc-if>
+                <sc-if value="{{ diaryNeedLogin }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-bottom:3px solid #241a38;flex:none;background:#fff8e8;padding:11px 14px;font-size:11px;color:#8d7ab0;">{{ L.diaryLoginHint }}</div>
+                </sc-if>
+                <div style="flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;min-height:90px;">
+                  <sc-if value="{{ diaryShowNotice }}" hint-placeholder-val="{{ false }}">
+                    <div style="text-align:center;font-size:11px;color:#8d7ab0;padding:16px 0;line-height:1.7;">{{ diaryNotice }}</div>
+                  </sc-if>
+                  <sc-for list="{{ diaryEntries }}" as="d" hint-placeholder-count="3">
+                    <div key="{{ d.id }}" style="display:flex;flex-direction:column;gap:3px;">
+                      <sc-if value="{{ d.showDate }}" hint-placeholder-val="{{ true }}">
+                        <div style="font-size:10px;color:#8d7ab0;padding:5px 0 2px;border-bottom:2px solid #e4d5b4;">📅 {{ d.date }}</div>
+                      </sc-if>
+                      <div style="display:flex;flex-direction:column;gap:2px;background:#f6edd8;border:2px solid #e4d5b4;padding:8px 10px;">
+                        <div style="display:flex;align-items:baseline;gap:7px;">
+                          <span style="font-size:11px;color:#3d7a48;">{{ d.name }}</span>
+                          <span style="font-size:8px;color:#b3a68f;">{{ d.time }}</span>
+                        </div>
+                        <div style="font-size:11px;color:#3b3252;line-height:1.6;white-space:pre-wrap;">{{ d.content }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="position:absolute;right:14px;bottom:3px;width:6px;height:4px;background:#58b368;"></div>
+            </div>
+            <div style="width:48px;height:20px;background:#241a38;flex:none;"></div>
+            <div style="width:150px;height:9px;background:#241a38;flex:none;"></div>
+          </div>
+          <div style="height:110px;flex:none;background:#a8713d;border-top:4px solid #241a38;position:relative;">
+            <div style="position:absolute;left:0;right:0;top:0;height:7px;background:#c08a4e;"></div>
+            <div style="position:absolute;left:30px;bottom:16px;width:64px;height:86px;">
+              <div style="position:absolute;left:24px;top:0;width:14px;height:28px;background:#58b368;border:2px solid #241a38;"></div>
+              <div style="position:absolute;left:4px;top:12px;width:15px;height:20px;background:#3d7a48;border:2px solid #241a38;"></div>
+              <div style="position:absolute;right:2px;top:10px;width:15px;height:22px;background:#3d7a48;border:2px solid #241a38;"></div>
+              <div style="position:absolute;left:8px;top:36px;width:46px;height:13px;background:#c96f3f;border:3px solid #241a38;"></div>
+              <div style="position:absolute;left:14px;top:52px;width:34px;height:20px;background:#a8552e;border:3px solid #241a38;border-top:none;"></div>
+            </div>
+            <div style="position:absolute;left:126px;bottom:20px;width:112px;height:52px;background:#fff8e8;border:3px solid #241a38;transform:rotate(-3deg);display:flex;">
+              <div style="flex:1;background:repeating-linear-gradient(#fff8e8 0 8px,#d9c9a8 8px 10px);margin:7px 5px 7px 9px;"></div>
+              <div style="width:3px;background:#241a38;"></div>
+              <div style="flex:1;background:repeating-linear-gradient(#fff8e8 0 8px,#d9c9a8 8px 10px);margin:7px 9px 7px 5px;"></div>
+            </div>
+            <div style="position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:236px;height:54px;background:#3a3148;border:3px solid #241a38;padding:6px;">
+              <div style="height:24px;background:repeating-linear-gradient(90deg,#5c5178 0 12px,#3a3148 12px 16px);"></div>
+              <div style="height:4px;"></div>
+              <div style="height:12px;margin:0 60px;background:#5c5178;"></div>
+            </div>
+            <div style="position:absolute;left:calc(50% + 150px);bottom:20px;width:28px;height:40px;background:#3a3148;border:3px solid #241a38;border-radius:12px 12px 13px 13px;">
+              <div style="margin:5px auto 0;width:4px;height:9px;background:#8d7ab0;"></div>
+            </div>
+            <div style="position:absolute;right:44px;bottom:22px;width:40px;height:44px;">
+              <div style="position:absolute;right:-13px;top:10px;width:15px;height:20px;border:4px solid #241a38;border-radius:50%;"></div>
+              <div style="position:absolute;inset:0;background:#e2574c;border:3px solid #241a38;"></div>
+              <div style="position:absolute;left:3px;right:3px;top:3px;height:8px;background:#6b4a2f;"></div>
+            </div>
           </div>
         </div>
-        <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;min-height:110px;">
-          <sc-if value="{{ diaryShowNotice }}" hint-placeholder-val="{{ false }}">
-            <div style="text-align:center;font-size:11px;color:#8d7ab0;padding:18px 0;line-height:1.7;">{{ diaryNotice }}</div>
-          </sc-if>
-          <sc-for list="{{ diaryEntries }}" as="d" hint-placeholder-count="3">
-            <div key="{{ d.id }}" style="display:flex;flex-direction:column;gap:3px;">
-              <sc-if value="{{ d.showDate }}" hint-placeholder-val="{{ true }}">
-                <div style="font-size:10px;color:#8d7ab0;padding:6px 0 2px;border-bottom:2px solid #e4d5b4;">📅 {{ d.date }}</div>
-              </sc-if>
-              <div style="display:flex;flex-direction:column;gap:2px;background:#f6edd8;border:2px solid #e4d5b4;padding:8px 10px;">
-                <span style="font-size:8px;color:#b3a68f;">{{ d.time }}</span>
-                <div style="font-size:11px;color:#3b3252;line-height:1.6;white-space:pre-wrap;">{{ d.content }}</div>
+      </sc-if>
+
+      <sc-if value="{{ diaryPlainMode }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);width:420px;max-height:78%;display:flex;flex-direction:column;animation:omPop 0.2s ease-out;">
+          <div style="display:flex;align-items:center;border-bottom:3px solid #241a38;flex:none;">
+            <span style="flex:1;padding:11px 14px;font-size:14px;color:#241a38;">🌱 {{ diaryTitleText }}</span>
+            <span style="font-size:9px;color:#8d7ab0;padding-right:10px;">{{ L.diaryPrivate }}</span>
+            <button onClick="{{ closeDiary }}" style="width:40px;align-self:stretch;border:none;border-left:3px solid #241a38;background:#e2574c;color:#fff8e8;cursor:pointer;font-size:12px;">✕</button>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#fff8e8;min-height:110px;">
+            <sc-if value="{{ diaryShowNotice }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;font-size:11px;color:#8d7ab0;padding:18px 0;line-height:1.7;">{{ diaryNotice }}</div>
+            </sc-if>
+            <sc-for list="{{ diaryEntries }}" as="d" hint-placeholder-count="3">
+              <div key="{{ d.id }}" style="display:flex;flex-direction:column;gap:3px;">
+                <sc-if value="{{ d.showDate }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:10px;color:#8d7ab0;padding:6px 0 2px;border-bottom:2px solid #e4d5b4;">📅 {{ d.date }}</div>
+                </sc-if>
+                <div style="display:flex;flex-direction:column;gap:2px;background:#f6edd8;border:2px solid #e4d5b4;padding:8px 10px;">
+                  <div style="display:flex;align-items:baseline;gap:7px;">
+                    <span style="font-size:11px;color:#3d7a48;">{{ d.name }}</span>
+                    <span style="font-size:8px;color:#b3a68f;">{{ d.time }}</span>
+                  </div>
+                  <div style="font-size:11px;color:#3b3252;line-height:1.6;white-space:pre-wrap;">{{ d.content }}</div>
+                </div>
               </div>
-            </div>
-          </sc-for>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ renameOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(12,8,24,0.62);display:flex;align-items:center;justify-content:center;">
+      <div style="background:#f6edd8;border:4px solid #241a38;box-shadow:8px 8px 0 rgba(12,8,24,0.6);padding:22px 24px;display:flex;flex-direction:column;gap:12px;width:320px;animation:omPop 0.2s ease-out;">
+        <div style="font-size:14px;color:#241a38;">✏️ {{ L.renameTitle }}</div>
+        <input value="{{ renameDraft }}" onChange="{{ onRenameChange }}" onKeyDown="{{ onRenameKey }}" onFocus="{{ onChatFocus }}" onBlur="{{ onChatBlur }}" placeholder="{{ L.pNameHint }}" maxLength="10" style="border:2px solid #241a38;background:#fff8e8;padding:10px 12px;font-size:13px;color:#241a38;outline:none;font-family:inherit;">
+        <div style="font-size:10px;color:#8d7ab0;">{{ L.renameHint }}</div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onClick="{{ saveRename }}" style="background:#58b368;color:#fff8e8;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:9px 18px;font-size:12px;cursor:pointer;font-family:inherit;">{{ L.renameSave }}</button>
+          <button onClick="{{ closeRename }}" style="background:#f6edd8;color:#8d5050;border:3px solid #241a38;box-shadow:0 3px 0 rgba(36,26,56,0.75);padding:9px 18px;font-size:12px;cursor:pointer;font-family:inherit;">{{ L.renameCancel }}</button>
         </div>
       </div>
     </div>
@@ -397,12 +509,12 @@
 }">
 class Component extends DCLogic {
   state = {
-    ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0,
+    ready: false, lang: 'ko', panelOpen: false, tab: 'chat', unread: 0, isTouch: false, renameOpen: false, renameDraft: '',
     chatDraft: '', emojiOpen: false, showWelcome: true,
     toasts: [], messages: [],
     pName: '', authReady: false, authUser: null,
     seatMap: {}, mySeatId: null, seatAsk: null,
-    diaryOpen: false, diaryRows: [], diaryStatus: 'loading', diaryDraft: '', diarySending: false,
+    diaryOpen: false, diaryRows: [], diaryStatus: 'loading', diaryDraft: '', diarySending: false, diaryFilter: null, dogTreats: 0,
     stampOpen: false, stampFeed: [], stampStatus: 'loading', stampDraft: '', stampSending: false, myStampDays: [],
     gbOpen: false, gbEntries: [], gbStatus: 'loading', gbDraft: '', gbSending: false,
     fortuneOpen: false, fortuneText: '',
@@ -414,6 +526,8 @@ class Component extends DCLogic {
   miniRef = React.createRef();
   chatListRef = React.createRef();
   chatInputRef = React.createRef();
+  joyBaseRef = React.createRef();
+  joyKnobRef = React.createRef();
 
   T = 32; MW = 46; MH = 30;
   BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -443,23 +557,24 @@ class Component extends DCLogic {
 
   I18N = {
     ko: {
-      roomName:'재택타운', online:'명 접속 중', chat:'채팅', people:'참가자', send:'전송',
+      roomName:'GatherGarden', online:'명 접속 중', chat:'채팅', people:'참가자', send:'전송',
       typeMsg:'메시지 입력…', mic:'마이크', cam:'카메라', react:'리액션', help:'도움말', you:'나',
       camOffL:'카메라 꺼짐', nearbyCall:'근처 대화 연결됨', meetingRoom:'회의실 A', meetingTitle:'주간 싱크',
       leaveHint:'방을 나가면 통화 종료', pomoTitle:'뽀모도로 라운지', focusPhase:'집중', breakPhase:'휴식',
-      together:'함께 집중 중', welcomeSub:'재택러들의 픽셀 아지트', ctrlMove:'이동', ctrlInteract:'상호작용 · 앉기 / 일어나기',
+      together:'함께 집중 중', welcomeSub:'함께 모여 자라는 픽셀 정원', ctrlMove:'이동', ctrlInteract:'상호작용 · 앉기 / 일어나기',
       ctrlEmote:'이모지 리액션', ctrlChat:'채팅 열기', startBtn:'입장하기', tip:'NPC에게 다가가 E를 누르면 말을 걸 수 있어요. 로비 방명록과 카페 포춘쿠키도 잊지 마세요!',
       ctrlLine:'WASD 이동 · E 상호작용/대화 · 1~6 이모지 · Enter 채팅',
       pPreview:'내 아바타', pNameLabel:'내 이름', pNameHint:'이름을 입력하세요', pColor:'옷', pHair:'머리', pStyle:'스타일',
-      authLoading:'로그인 확인 중…', loginGoogle:'구글로 로그인', loginWhy:'로그인하면 자리 선택·일기·출근 도장을 쓸 수 있어요. 로그인 없이도 구경은 가능!',
+      renameTitle:'이름 바꾸기', renameHint:'게더가든에서 쓸 이름이에요 (최대 10자)', renameSave:'저장', renameCancel:'취소',
+      authLoading:'로그인 확인 중…', loginGoogle:'구글로 로그인', loginWhy:'로그인하면 자리 선택·회고·출근 도장을 쓸 수 있어요. 로그인 없이도 구경은 가능!',
       logout:'로그아웃', startGuest:'로그인 없이 구경하기', needLogin:'🔒 로그인 후 이용할 수 있어요',
-      gbTitle:'재택타운 방명록', gbPlaceholder:'한마디 남겨주세요…', gbWrite:'남기기',
+      gbTitle:'GatherGarden 방명록', gbPlaceholder:'한마디 남겨주세요…', gbWrite:'남기기',
       gbLoading:'방명록을 불러오는 중…', gbEmpty:'아직 글이 없어요.\n첫 번째 방명록을 남겨보세요! ✍️', gbError:'방명록을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
       fortuneTitle:'오늘의 포춘쿠키', fortuneClose:'냠냠 잘 먹었습니다',
       seatAskTitle:'이 책상을 내 자리로 정할까요?', seatAskDesc:'내 자리로 정하면 다음 접속부터 여기서 시작해요. 나중에 다른 빈 책상으로 옮길 수도 있어요.',
       seatYes:'내 자리로 정하기', seatJust:'그냥 앉기', seatNo:'취소',
-      diaryTitle:'나의 일기장', diaryPrivate:'🔒 나만 볼 수 있어요', diaryPlaceholder:'오늘 하루는 어땠나요? 편하게 적어보세요…',
-      diaryWrite:'저장', diaryLoading:'일기장을 펼치는 중…', diaryEmpty:'아직 일기가 없어요.\n첫 일기를 남겨보세요 ✏️', diaryError:'일기장을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
+      diaryTitle:'회고 라운지', diaryPrivate:'🌱 서로의 회고에서 힘을 얻어요', diaryPlaceholder:'오늘을 돌아봐요. 잘한 것, 배운 것, 내일 해볼 것…',
+      diaryWrite:'회고 남기기', diaryLoading:'회고를 불러오는 중…', diaryEmpty:'아직 회고가 없어요.\n오늘의 첫 회고를 남겨보세요 ✏️', diaryError:'회고를 불러올 수 없어요. 잠시 후 다시 시도해 주세요.', diaryLoginHint:'🔒 로그인하면 회고를 남길 수 있어요', diaryOf:' 님의 회고', dashOwn:'의 게더가든',
       stampTitle:'출근 도장', stampPlaceholder:'오늘의 기분이나 한마디를 남겨보세요…', stampWrite:'도장 찍기',
       stampDone:'✅ 오늘은 이미 도장을 찍었어요. 내일 또 만나요!', stampLoginHint:'🔒 로그인하면 출근 도장을 찍을 수 있어요',
       stampLoading:'도장판을 가져오는 중…', stampEmpty:'아직 아무도 도장을 안 찍었어요.\n첫 출근 도장의 주인공이 되어보세요!', stampError:'도장판을 불러올 수 없어요. 잠시 후 다시 시도해 주세요.',
@@ -469,23 +584,24 @@ class Component extends DCLogic {
       st_online:'온라인', st_focus:'집중 중', st_break:'커피 브레이크', st_meeting:'회의 중', st_pomo:'뽀모도로', st_game:'게임 중', st_call:'통화 중', st_relax:'쉬는 중'
     },
     en: {
-      roomName:'WFH TOWN', online:' online', chat:'Chat', people:'People', send:'Send',
+      roomName:'GatherGarden', online:' online', chat:'Chat', people:'People', send:'Send',
       typeMsg:'Type a message…', mic:'Mic', cam:'Camera', react:'React', help:'Help', you:'Me',
       camOffL:'Camera off', nearbyCall:'Nearby call connected', meetingRoom:'Meeting Room A', meetingTitle:'Weekly Sync',
       leaveHint:'Walk out to leave the call', pomoTitle:'Pomodoro Lounge', focusPhase:'FOCUS', breakPhase:'BREAK',
-      together:'focusing together', welcomeSub:'A pixel hideout for remote workers', ctrlMove:'Move', ctrlInteract:'Interact · Sit / Stand',
+      together:'focusing together', welcomeSub:'A pixel garden where we grow together', ctrlMove:'Move', ctrlInteract:'Interact · Sit / Stand',
       ctrlEmote:'Emoji reaction', ctrlChat:'Open chat', startBtn:'Enter town', tip:'Walk up to an NPC and press E to chat. Don\'t miss the lobby guestbook and café fortune cookies!',
       ctrlLine:'WASD move · E interact/talk · 1-6 emoji · Enter chat',
       pPreview:'My avatar', pNameLabel:'My name', pNameHint:'Enter your name', pColor:'Top', pHair:'Hair', pStyle:'Style',
-      authLoading:'Checking sign-in…', loginGoogle:'Sign in with Google', loginWhy:'Sign in to claim a desk, write diaries and daily stamps. Browsing works without it!',
+      renameTitle:'Change name', renameHint:'Your name in GatherGarden (max 10)', renameSave:'Save', renameCancel:'Cancel',
+      authLoading:'Checking sign-in…', loginGoogle:'Sign in with Google', loginWhy:'Sign in to claim a desk, write retros and daily stamps. Browsing works without it!',
       logout:'Sign out', startGuest:'Browse as guest', needLogin:'🔒 Sign in to use this',
-      gbTitle:'WFH Town Guestbook', gbPlaceholder:'Leave a note…', gbWrite:'Post',
+      gbTitle:'GatherGarden Guestbook', gbPlaceholder:'Leave a note…', gbWrite:'Post',
       gbLoading:'Loading the guestbook…', gbEmpty:'No notes yet.\nBe the first to sign! ✍️', gbError:'Couldn\'t load the guestbook. Please try again later.',
       fortuneTitle:'Fortune Cookie', fortuneClose:'Yum, thanks!',
       seatAskTitle:'Claim this desk as yours?', seatAskDesc:'Your desk is where you\'ll start each visit. You can move to another empty desk later.',
       seatYes:'Claim desk', seatJust:'Just sit', seatNo:'Cancel',
-      diaryTitle:'My Diary', diaryPrivate:'🔒 Only you can read this', diaryPlaceholder:'How was your day? Write freely…',
-      diaryWrite:'Save', diaryLoading:'Opening your diary…', diaryEmpty:'No entries yet.\nWrite your first one ✏️', diaryError:'Couldn\'t load the diary. Please try again later.',
+      diaryTitle:'Retro Lounge', diaryPrivate:'🌱 We grow on each other\'s retros', diaryPlaceholder:'Look back on today — wins, lessons, what\'s next…',
+      diaryWrite:'Post retro', diaryLoading:'Loading retros…', diaryEmpty:'No retros yet.\nWrite today\'s first one ✏️', diaryError:'Couldn\'t load retros. Please try again later.', diaryLoginHint:'🔒 Sign in to write retros', diaryOf:'\'s retros', dashOwn:'\'s GatherGarden',
       stampTitle:'Daily Check-in', stampPlaceholder:'How do you feel today? Leave a note…', stampWrite:'Check in',
       stampDone:'✅ Already checked in today. See you tomorrow!', stampLoginHint:'🔒 Sign in to check in daily',
       stampLoading:'Loading the board…', stampEmpty:'No check-ins yet.\nBe the first!', stampError:'Couldn\'t load the board. Please try again later.',
@@ -505,7 +621,9 @@ class Component extends DCLogic {
     conan: [['버그가 아니라 기능입니다','It\'s not a bug, it\'s a feature'],['배포 전에 기도 한 번 하고 갑니다','A quick prayer before deploy'],['커밋 메시지: fix fix fix fix','commit: fix fix fix fix']],
     donut: [['방금 산책 갔다 왔는데 세상 좋더라','Just walked outside. World = nice'],['이 러그 색 완전 취향 저격 아님?','This rug color is SO good'],['저녁 배달 뭐 시킬지 투표 받습니다','Voting open for tonight\'s delivery']],
     tofu: [['다들 허리 펴세요! 스트레칭 타임','Stretch break! Posture check'],['오늘 만보 걷기 도전 중입니다','Attempting 10k steps today'],['회의 없는 수요일 만세','Long live no-meeting Wednesday']],
-    greet: [['어 안녕하세요! 👋','Oh hey! 👋'],['오늘도 재택 파이팅이에요','Happy WFH day'],['마이크 잘 들려요?','Can you hear me OK?']],
+    saessak: [['어서 오세요, 게더가든이에요! WASD나 방향키로 걸어다닐 수 있어요','Welcome to GatherGarden! Walk with WASD or arrow keys'],['가까이 가서 E를 누르면 뭐든 할 수 있어요. 앉기, 말 걸기, 뽑기!','Get close and press E to interact — sit, talk, play!'],['빈 책상에서 E를 누르면 내 자리로 정할 수 있어요','Press E at an empty desk to claim it'],['자리에 앉으면 내 책상이 열려요. 오늘 하루를 회고해 봐요 🌱','Sit at your desk to open it and write today\'s retro 🌱'],['이 데스크에서 출근 도장 잊지 마세요!','Don\'t forget your daily stamp at this desk!'],['카페에서 간식을 사면 강아지들에게 줄 수 있어요 🦴','Buy a treat at the café and feed the dogs 🦴']],
+    ruby: [['어머 자기 왔어? 앉아봐, 오늘 얘깃거리가 산더미야 ☕','Oh honey, sit. I have SO much tea today ☕'],['그 회의 말이야… 내가 본 드라마 중 최고였어','That meeting? Best drama I\'ve seen all season'],['핑구 또 하이스코어 뺏겼다고 시무룩하던데, 귀엽지','Pingu lost the high score again. Precious'],['라떼가 원두 바꾼 거 눈치챘어? 나만 알아채더라?','New beans today — and only I noticed, obviously'],['자기 오늘 스타일 별 다섯 개야 ⭐ 내 안목 알지','That look? Five stars, darling ⭐ Trust my taste'],['이건 비밀인데… 쿠키 항아리 리필 시간을 내가 알아','Between us… I know when the cookie jar gets refilled']],
+    greet: [['어 안녕하세요! 👋','Oh hey! 👋'],['오늘도 파이팅이에요','Keep going today'],['마이크 잘 들려요?','Can you hear me OK?']],
     reply: [['ㅋㅋㅋ 인정','lol so true'],['오 좋은데요?','ooh nice'],['일단 커피부터요 ☕','coffee first ☕'],['그거 회고 때 얘기해요!','bring that to retro!'],['👍👍','👍👍']]
   };
 
@@ -517,7 +635,9 @@ class Component extends DCLogic {
     { id:'pingu', ko:'핑구', en:'Pingu', col:'#5561d8', skin:'#f0c8a0', hair:'#241a38', style:'spiky', shirt:'#5561d8', pants:'#2c2438', mode:'wander', roam:[{x:32,y:14,w:11,h:6}], tx:35, ty:15, status:'game', pool:'pingu', talk:[15,10] },
     { id:'conan', ko:'코난', en:'Conan', col:'#4a90d9', skin:'#f0c8a0', hair:'#3b2d26', style:'bowl', shirt:'#4a90d9', pants:'#4a4a5e', mode:'sit', seat:{x:8,y:14,dir:'down'}, status:'focus', pool:'conan', talk:[20,15] },
     { id:'donut', ko:'도넛', en:'Donut', col:'#e2574c', skin:'#f0c8a0', hair:'#d95a4a', style:'hood', shirt:'#e2574c', pants:'#3d4a6b', bag:true, mode:'wander', roam:[{x:3,y:22,w:10,h:6},{x:17,y:22,w:18,h:6}], tx:8, ty:24, status:'online', pool:'donut', talk:[13,9] },
-    { id:'tofu', ko:'두부', en:'Tofu', col:'#4fae9e', skin:'#e8b48c', hair:'#2c2438', style:'hood', shirt:'#4fae9e', pants:'#3d4a6b', mode:'wander', roam:[{x:2,y:11,w:26,h:9},{x:15,y:3,w:18,h:6},{x:18,y:22,w:24,h:6}], tx:22, ty:14, status:'online', pool:'tofu', talk:[11,8] }
+    { id:'tofu', ko:'두부', en:'Tofu', col:'#4fae9e', skin:'#e8b48c', hair:'#2c2438', style:'hood', shirt:'#4fae9e', pants:'#3d4a6b', mode:'wander', roam:[{x:2,y:11,w:26,h:9},{x:15,y:3,w:18,h:6},{x:18,y:22,w:24,h:6}], tx:22, ty:14, status:'online', pool:'tofu', talk:[11,8] },
+    { id:'saessak', ko:'인포 매니저 새싹', en:'Info Mgr. Sprout', col:'#3d7a48', skin:'#f0c8a0', hair:'#3b2d26', style:'bun', shirt:'#3d7a48', pants:'#241a38', bag:true, mode:'stand', tx:20.2, ty:23.6, dir:'down', status:'online', pool:'saessak', talk:[40,30] },
+    { id:'ruby', ko:'루비', en:'Ruby', col:'#c76bd3', skin:'#e8b48c', hair:'#d94f6b', style:'long', shirt:'#c76bd3', pants:'#3d4a6b', mode:'sit', seat:{x:19,y:7,dir:'left'}, status:'break', pool:'ruby', talk:[12,9] }
   ];
 
   componentDidMount() {
@@ -534,7 +654,9 @@ class Component extends DCLogic {
     this.makeAvatars();
     this.loadMeSprite();
     this.loadNpcSprites();
+    this.loadDogSprites();
     this.bootAt = Date.now(); this.lastZone = null; this.uiSig = ''; this.lastSync = 0; this.lastMini = 0;
+    this.setState({ isTouch: ('ontouchstart' in window) || ((navigator.maxTouchPoints || 0) > 0) });
     window.addEventListener('keydown', this.onKey);
     window.addEventListener('keyup', this.onKey);
     window.addEventListener('blur', this.onWinBlur);
@@ -544,7 +666,7 @@ class Component extends DCLogic {
     this.resize();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { try { this.buildStatic(); } catch(e){} });
     if (!this.widget) {
-      this.after(700, () => this.pushMsg({ id:this.mid++, sys:true, ko:'재택타운에 입장했어요. 환영해요! 🎉', en:'You joined WFH Town. Welcome! 🎉', time:this.tstr() }));
+      this.after(700, () => this.pushMsg({ id:this.mid++, sys:true, ko:'GatherGarden에 입장했어요. 환영해요! 🎉', en:'You joined GatherGarden. Welcome! 🎉', time:this.tstr() }));
       this.after(1800, () => { const n = this.npcById.latte; if (n && this.isActive(n)) this.say(n, ['커피 머신 새로 들어왔어요. 카페로 오세요 ☕','New coffee machine just landed. Come by the café ☕']); });
       this.after(3400, () => { const n = this.npcById.jay; if (n && this.isActive(n)) this.say(n, ['3시 주간 싱크는 회의실 A에서 해요!','Weekly sync at 3pm in Meeting Room A!']); });
     }
@@ -638,6 +760,7 @@ class Component extends DCLogic {
       if (r.ok) {
         this.toast('🪑 내 자리로 정했어요! 다음부터 여기서 시작해요', '🪑 Desk claimed! You\'ll start here next time');
         this.sitAtDesk(id);
+        this.openDiary();
       } else if ((r.error || '').indexOf('duplicate') >= 0 || (r.error || '').indexOf('pkey') >= 0) {
         this.toast('앗, 방금 다른 분이 먼저 찜한 자리예요', 'Oops, someone just claimed that desk');
       } else {
@@ -804,12 +927,12 @@ class Component extends DCLogic {
     });
   };
 
-  // ————— diary (private) —————
-  openDiary = () => {
-    this.setState({ diaryOpen: true, diaryStatus: 'loading', diaryRows: [] });
+  // ————— retro (shared) —————
+  openDiary = (fUser) => {
+    this.setState({ diaryOpen: true, diaryStatus: 'loading', diaryRows: [], diaryFilter: fUser || null });
     const rt = window.__townRT;
     if (!rt || !rt.available || !rt.diary) { this.setState({ diaryStatus: 'error' }); return; }
-    rt.diary.list().then(r => {
+    rt.diary.list(fUser ? fUser.id : null).then(r => {
       if (!this.state.diaryOpen) return;
       if (!r.ok) { console.error('diary:', r.error); this.setState({ diaryStatus: 'error' }); }
       else this.setState({ diaryStatus: 'ready', diaryRows: r.rows });
@@ -825,9 +948,9 @@ class Component extends DCLogic {
     this.setState({ diarySending: true });
     rt.diary.add(txt).then(r => {
       if (r.ok) {
-        const row = { id: 'local' + (this.mid++), created_at: new Date().toISOString(), content: txt };
+        const row = { id: 'local' + (this.mid++), created_at: new Date().toISOString(), content: txt, name: (this.state.pName || '나') };
         this.setState(s => ({ diarySending: false, diaryDraft: '', diaryStatus: 'ready', diaryRows: [row, ...s.diaryRows] }));
-        this.toast('📓 일기를 저장했어요 (나만 볼 수 있어요)', '📓 Diary saved (only you can read it)');
+        this.toast('🌱 회고를 남겼어요. 오늘도 수고했어요!', '🌱 Retro posted. Nice work today!');
       } else {
         console.error('diary:', r.error);
         this.setState({ diarySending: false });
@@ -893,7 +1016,7 @@ class Component extends DCLogic {
           tx: null, ty: null, dir: 'down', moving: false, animT: 0, sitting: null, remote: true
         };
         this.remotes[key] = ent;
-        this.charSpr[ent.id] = this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
+        this.charSpr[ent.id] = this.mkMeVariant(ent.col) || this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
         this.mkRemoteAvatar(ent);
         this.pushMsg({ id: this.mid++, sys: true, ko: ent.ko + ' 님이 입장했어요 👋', en: ent.en + ' joined 👋', time: this.tstr() });
         added = true;
@@ -902,7 +1025,7 @@ class Component extends DCLogic {
         ent.sig = metaSig;
         ent.ko = meta.name || '게스트'; ent.en = meta.name || 'Guest';
         ent.col = meta.col || '#5561d8';
-        this.charSpr[ent.id] = this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
+        this.charSpr[ent.id] = this.mkMeVariant(ent.col) || this.mkSet({ skin:'#f0c8a0', hair: meta.hair || '#241a38', style: meta.style || 'cap', cap: ent.col, shirt: ent.col, pants:'#3d4a6b' });
         this.mkRemoteAvatar(ent);
       }
     }
@@ -985,7 +1108,7 @@ class Component extends DCLogic {
   pick(a) { return a[(Math.random() * a.length) | 0]; }
   tstr() { const d = new Date(); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
   chatterOn() { const p = this.props || {}; return p.npcChatter === true; }
-  activeNpcs() { const p = this.props || {}; const c = Math.max(0, Math.min(8, p.npcCount != null ? p.npcCount : 8)); return (this.npcs || []).slice(0, c); }
+  activeNpcs() { const p = this.props || {}; const c = Math.max(0, Math.min(10, p.npcCount != null ? p.npcCount : 10)); return (this.npcs || []).slice(0, c); }
   isActive(n) { return this.activeNpcs().indexOf(n) >= 0; }
   shade(hex, amt) {
     let r, g, b;
@@ -1045,6 +1168,7 @@ class Component extends DCLogic {
     this.inters.push({ id:'fortune', act:'fortune', x:21, y:3, r:1.6, ko:'포춘쿠키 뽑기', en:'Crack a fortune cookie' });
     TOAST('coffee', 18, 3, '커피 내리기', 'Brew coffee', '☕ 아메리카노 완료! 오늘의 연료 충전', '☕ Americano ready! Fuel acquired', '☕', { npcReact:'latte', rko:'제가 내린 거예요. 맛있죠?', ren:'I brewed that. Good, right?' });
     TOAST('vend', 28, 3, '간식 뽑기', 'Grab a snack', '🍫 초코바 겟! (재고 3개 남음)', '🍫 Choco bar! (3 left in stock)', '🍫');
+    this.inters.push({ id:'treat', act:'treat', x:24, y:3, r:1.6, ko:'🦴 강아지 간식 사기', en:'🦴 Buy a dog treat' });
     TOAST('water', 30, 3, '물 마시기', 'Drink water', '💧 수분 충전 완료!', '💧 Hydration +100!', '💧');
     // open desks
     for (const ry of [12, 15, 18]) for (const dx of [4, 8, 12]) {
@@ -1472,6 +1596,13 @@ class Component extends DCLogic {
     this.npcs.forEach(n => { this.npcById[n.id] = n; });
     this.charSpr = { me: this.mkSet(palMe) };
     this.npcs.forEach(n => { this.charSpr[n.id] = this.mkSet({ skin:n.skin, hair:n.hair, style:n.style, shirt:n.shirt, pants:n.pants, cap:n.cap, bag:n.bag }); });
+    this.dogs = [
+      { id:'dog1', ko:'도토리', en:'Acorn', col:'#a5652f', row:0, mode:'wander', roam:[{x:3,y:22,w:10,h:6},{x:17,y:22,w:18,h:6}], x:10.5*T, y:24.5*T, dir:'left' },
+      { id:'dog2', ko:'방울', en:'Bell', col:'#8a6a3c', row:1, mode:'wander', roam:[{x:15,y:3,w:18,h:6},{x:14,y:11,w:16,h:8}], x:25.5*T, y:5.5*T, dir:'right' },
+      { id:'dog3', ko:'보리', en:'Bori', col:'#d9a659', row:2, mode:'wander', roam:[{x:2,y:11,w:26,h:9},{x:18,y:22,w:24,h:6}], x:20.5*T, y:20.5*T, dir:'down' }
+    ];
+    const dogSp = [34, 46, 30];
+    this.dogs.forEach((d, i) => { d.moving = false; d.animT = 0; d.sp = dogSp[i]; d.wait = 1 + Math.random() * 3; d.target = null; d.nextTalk = Infinity; d.dog = true; });
     this.makeDeco();
     this._artV = 7;
   }
@@ -1503,7 +1634,16 @@ class Component extends DCLogic {
         right: [this.mirror(L[0]), this.mirror(L[1]), this.mirror(L[2])],
         sit: { down: F(9), up: F(10), left: Ls, right: this.mirror(Ls) }
       };
-      if (this.charSpr) { this.charSpr.me = this._meSet; this.makeAvatars(); this.forceUpdate(); }
+      if (this.charSpr) {
+        this.charSpr.me = this._meSet;
+        this._meVar = {};
+        for (const k of Object.keys(this.remotes || {})) {
+          const ent = this.remotes[k];
+          const v = this.mkMeVariant(ent.col);
+          if (v) { this.charSpr[ent.id] = v; this.mkRemoteAvatar(ent); }
+        }
+        this.makeAvatars(); this.forceUpdate();
+      }
     };
     im.src = './me-sprite.png';
   }
@@ -1529,6 +1669,43 @@ class Component extends DCLogic {
     im.src = './npc-sprites.png';
   }
 
+  mkMeVariant(col) {
+    if (!this._meSet) return null;
+    this._meVar = this._meVar || {};
+    if (this._meVar[col]) return this._meVar[col];
+    const tint = (src) => {
+      const c = this.mk(src.width, src.height), g = c.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      g.drawImage(src, 0, 0);
+      g.globalCompositeOperation = 'source-atop';
+      g.globalAlpha = 0.26;
+      g.fillStyle = col;
+      g.fillRect(0, 0, c.width, c.height);
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      return c;
+    };
+    const m = this._meSet;
+    const v = {
+      down: m.down.map(tint), up: m.up.map(tint), left: m.left.map(tint), right: m.right.map(tint),
+      sit: { down: tint(m.sit.down), up: tint(m.sit.up), left: tint(m.sit.left), right: tint(m.sit.right) }
+    };
+    this._meVar[col] = v;
+    return v;
+  }
+
+  loadDogSprites() {
+    const im = new Image();
+    im.onload = () => {
+      const CW = 84, CH = 56;
+      this._dogSets = [0, 1, 2].map(row => {
+        const F = (i) => { const cv = this.mk(CW, CH); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(im, i * CW, row * CH, CW, CH, 0, 0, CW, CH); return cv; };
+        return { down: F(0), up: F(1), right: F(2), left: F(3) };
+      });
+      this.forceUpdate();
+    };
+    im.src = './dog-sprites.png';
+  }
+
   // ————— static map layer —————
   buildStatic() {
     const T = this.T, W = this.MW, H = this.MH;
@@ -1549,6 +1726,20 @@ class Component extends DCLogic {
         g.fillStyle = '#b8894e'; g.fillRect(px, py + T - 2, T, 2);
         g.fillStyle = 'rgba(122,84,40,0.35)'; g.fillRect(px + ((y % 2) ? 6 : 22), py, 2, T);
       }
+    }
+    // dog bowls (near the lounge)
+    {
+      const bx = 12 * T + 4, by = 26 * T + 10;
+      g.fillStyle = '#8a5a3c'; g.fillRect(bx - 5, by - 5, 50, 20);
+      g.fillStyle = '#6e4630'; g.fillRect(bx - 5, by - 5, 50, 2);
+      g.fillStyle = '#241a38'; g.fillRect(bx, by, 18, 10);
+      g.fillStyle = '#c9564a'; g.fillRect(bx + 1, by + 1, 16, 8);
+      g.fillStyle = '#8a3a32'; g.fillRect(bx + 3, by + 3, 12, 4);
+      g.fillStyle = '#b07a3c'; g.fillRect(bx + 4, by + 3, 3, 2); g.fillRect(bx + 8, by + 4, 3, 2); g.fillRect(bx + 12, by + 3, 2, 2);
+      g.fillStyle = '#241a38'; g.fillRect(bx + 22, by, 18, 10);
+      g.fillStyle = '#4a90d9'; g.fillRect(bx + 23, by + 1, 16, 8);
+      g.fillStyle = '#2f6cb0'; g.fillRect(bx + 25, by + 3, 12, 4);
+      g.fillStyle = '#9fd0f2'; g.fillRect(bx + 26, by + 3, 4, 2);
     }
     // rugs
     for (const r of this.rugs) {
@@ -1604,8 +1795,8 @@ class Component extends DCLogic {
     // main sign
     drawBoard(20, 6, '#241a38', '#e2574c');
     g.font = '19px Galmuri11, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillStyle = '#8ff0e0'; g.fillText('★ 재택타운 ★', 23 * T, 27);
-    g.font = '10px Galmuri9, monospace'; g.fillStyle = '#ffb64c'; g.fillText('WFH TOWN · REMOTE WORKERS CLUB', 23 * T, 43);
+    g.fillStyle = '#8ff0e0'; g.fillText('GatherGarden', 23 * T, 27);
+    g.font = '10px Galmuri9, monospace'; g.fillStyle = '#ffb64c'; g.fillText('ONLINE COWORKING GARDEN', 23 * T, 43);
     // cafe neon
     g.fillStyle = '#241a38'; g.fillRect(17 * T + 2, 14, 60, 30);
     g.font = '13px Galmuri11, monospace'; g.fillStyle = '#ffb64c'; g.fillText('☕ CAFE', 18 * T - 1, 30);
@@ -1690,6 +1881,27 @@ class Component extends DCLogic {
   };
   onWinBlur = () => { if (this.keys) this.keys.clear(); };
 
+  bindJoy() {
+    this._joyBound = true;
+    const base = this.joyBaseRef.current, knob = this.joyKnobRef.current;
+    const R = 42;
+    const setV = (t) => {
+      const r = base.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      let dx = t.clientX - cx, dy = t.clientY - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      const cl = Math.min(d, R);
+      dx = dx / d * cl; dy = dy / d * cl;
+      knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+      this.joyVec = { x: dx / R, y: dy / R };
+    };
+    const end = () => { this.joyVec = null; knob.style.transform = 'translate(0,0)'; };
+    base.addEventListener('touchstart', (e) => { e.preventDefault(); setV(e.touches[0]); }, { passive: false });
+    base.addEventListener('touchmove', (e) => { e.preventDefault(); setV(e.touches[0]); }, { passive: false });
+    base.addEventListener('touchend', end);
+    base.addEventListener('touchcancel', end);
+  }
+
   // ————— actions —————
   toggleEmoji = () => this.setState(s => ({ emojiOpen: !s.emojiOpen }));
   openChatTab = () => this.setState(s => ({ panelOpen: !(s.panelOpen && s.tab === 'chat'), tab: 'chat', unread: 0 }));
@@ -1722,6 +1934,26 @@ class Component extends DCLogic {
   }
 
   onPNameChange = (e) => this.setState({ pName: e.target.value.slice(0, 10) });
+
+  openRename = () => this.setState({ renameOpen: true, renameDraft: (this.state.pName || '').trim() });
+  closeRename = () => this.setState({ renameOpen: false });
+  onRenameChange = (e) => this.setState({ renameDraft: e.target.value.slice(0, 10) });
+  onRenameKey = (e) => { if (e.key === 'Enter') this.saveRename(); if (e.key === 'Escape') this.closeRename(); };
+  saveRename = () => {
+    const nm = (this.state.renameDraft || '').trim().slice(0, 10);
+    if (!nm) { this.setState({ renameOpen: false }); return; }
+    const prof = { name: nm };
+    this.profile = prof;
+    try { localStorage.setItem('town-profile', JSON.stringify(prof)); } catch (e) {}
+    this.setState({ pName: nm, renameOpen: false });
+    this.applyProfile();
+    const rt = window.__townRT;
+    if (rt && rt.available && this.state.authUser) {
+      rt.auth.saveProfile(this.state.authUser.id, nm);
+      this.loadSeats(false);
+    }
+    this.toast('✏️ 이름을 바꿨어요: ' + nm, '✏️ Renamed to ' + nm);
+  };
 
   openGuestbook = () => {
     this.setState({ gbOpen: true, gbStatus: 'loading', gbEntries: [] });
@@ -1826,7 +2058,7 @@ class Component extends DCLogic {
         const owner = this.state.seatMap[it.deskId];
         const uid = this.state.authUser && this.state.authUser.id;
         if (owner && (!uid || owner.userId !== uid)) {
-          this.toast('🪑 ' + owner.name + ' 님의 자리예요', '🪑 This is ' + owner.name + "'s desk");
+          this.openDiary({ id: owner.userId, name: owner.name });
           return;
         }
         if (!owner && uid && this.state.mySeatId !== it.deskId) {
@@ -1836,6 +2068,11 @@ class Component extends DCLogic {
       }
       p.sitting = { kind: it.kind, ex: (it.ex + 0.5) * T, ey: (it.ey + 0.5) * T };
       p.x = (it.sx + 0.5) * T; p.y = (it.sy + 0.85) * T; p.dir = it.sdir; p.moving = false;
+      if (it.deskId) {
+        const own2 = this.state.seatMap[it.deskId];
+        const uid2 = this.state.authUser && this.state.authUser.id;
+        if ((own2 && uid2 && own2.userId === uid2) || (!own2 && !uid2)) this.openDiary();
+      }
     } else if (it.act === 'toast') {
       this.toast(it.tko, it.ten);
       if (it.emote) this.emotes.push({ e: p, ch: it.emote, born: Date.now() });
@@ -1848,14 +2085,45 @@ class Component extends DCLogic {
     } else if (it.act === 'pc') {
       const owner = this.state.seatMap[it.deskId];
       const uid = this.state.authUser && this.state.authUser.id;
-      if (!owner) { this.toast('빈 책상이에요. 자리를 정하면 일기장이 생겨요', 'Empty desk. Claim a desk to get a diary'); return; }
-      if (!uid || owner.userId !== uid) { this.toast('🔒 ' + owner.name + ' 님의 컴퓨터예요. 일기는 본인만 볼 수 있어요', '🔒 ' + owner.name + "'s computer. Diaries are private"); return; }
+      if (!owner) {
+        if (!uid) { this.openDiary(); return; }
+        this.setState({ seatAsk: it.deskId }); return;
+      }
+      if (!uid || owner.userId !== uid) { this.openDiary({ id: owner.userId, name: owner.name }); return; }
       this.openDiary();
     } else if (it.act === 'guestbook') {
       this.openGuestbook();
     } else if (it.act === 'fortune') {
       this.emotes.push({ e: p, ch: '🥠', born: Date.now() });
       this.openFortune();
+    } else if (it.act === 'wave') {
+      this.emotes.push({ e: p, ch: '👋', born: Date.now() });
+      if (this.net) this.net.sendEmote({ id: this.net.id, ch: '👋' });
+      this.setState({ panelOpen: true, tab: 'chat', unread: 0 });
+      this.after(80, () => { const el = this.chatInputRef.current; if (el) el.focus(); });
+    } else if (it.act === 'treat') {
+      const tr = Math.min(9, (this.state.dogTreats || 0) + 1);
+      this.setState({ dogTreats: tr });
+      this.emotes.push({ e: p, ch: '🦴', born: Date.now() });
+      this.toast('🦴 강아지 간식 구입! (보유 ' + tr + '개)', '🦴 Dog treat bought! (x' + tr + ')');
+    } else if (it.act === 'dog') {
+      const d = (this.dogs || []).find(x => x.id === it.dogId); if (!d) return;
+      const ddx = p.x - d.x;
+      if (Math.abs(ddx) > 20) d.dir = ddx > 0 ? 'right' : 'left';
+      d.wait = Math.max(d.wait || 0, 2.5); d.moving = false; d.target = null;
+      const tr = this.state.dogTreats || 0;
+      if (tr > 0) {
+        this.setState({ dogTreats: tr - 1 });
+        this.emotes.push({ e: d, ch: '🦴', born: Date.now() });
+        this.after(500, () => this.emotes.push({ e: d, ch: '❤️', born: Date.now() }));
+        d.bubble = { ko: '냠냠! 🦴', en: 'nom nom! 🦴', until: Date.now() + 3000 };
+        this.toast('🦴 ' + d.ko + '(이)가 간식을 맛있게 먹었어요! (남은 간식 ' + (tr - 1) + '개)', '🦴 ' + d.en + ' loved the treat! (' + (tr - 1) + ' left)');
+      } else {
+        this.emotes.push({ e: d, ch: '❤️', born: Date.now() });
+        const barks = [['멍멍!','Woof woof!'],['왕! 🐾','Arf! 🐾'],['헥헥… 기분 최고','happy panting'],['킁킁 👃','sniff sniff 👃']];
+        const b = barks[(Math.random() * barks.length) | 0];
+        d.bubble = { ko: b[0], en: b[1], until: Date.now() + 3000 };
+      }
     } else if (it.act === 'npc') {
       const n = this.npcById[it.npcId];
       if (!n) return;
@@ -1888,9 +2156,16 @@ class Component extends DCLogic {
     if (k.has('d') || k.has('arrowright')) dx++;
     if (k.has('w') || k.has('arrowup')) dy--;
     if (k.has('s') || k.has('arrowdown')) dy++;
+    let joy = false;
+    if (!dx && !dy && this.joyVec && (Math.abs(this.joyVec.x) > 0.18 || Math.abs(this.joyVec.y) > 0.18)) {
+      const mg = Math.hypot(this.joyVec.x, this.joyVec.y);
+      const cl = Math.min(1, mg);
+      dx = this.joyVec.x / mg * cl; dy = this.joyVec.y / mg * cl;
+      joy = true;
+    }
     if (p.sitting) { if (dx || dy) { p.x = p.sitting.ex; p.y = p.sitting.ey; p.sitting = null; } else return; }
     if (!dx && !dy) { p.moving = false; return; }
-    const m = dx && dy ? 0.7071 : 1;
+    const m = joy ? 1 : (dx && dy ? 0.7071 : 1);
     const pr = this.props || {};
     const sp = (pr.playerSpeed || 3.4) * this.T;
     this.moveEnt(p, dx * m * sp * dt, dy * m * sp * dt);
@@ -1957,6 +2232,24 @@ class Component extends DCLogic {
           best = { id: 'npc_' + n.id, act: 'npc', npcId: n.id, ko: L.ko.talkTo + ' · ' + n.ko, en: L.en.talkTo + ' · ' + n.en };
         }
       }
+      for (const k of Object.keys(this.remotes || {})) {
+        const r = this.remotes[k];
+        const d = Math.hypot(r.x - p.x, r.y - p.y);
+        if (d < 1.7 * T && d < bd) {
+          bd = d;
+          best = { id: 'wave_' + r.id, act: 'wave', rid: k, ko: '👋 ' + r.ko + ' 님에게 인사 · 채팅 열기', en: '👋 Wave at ' + r.en + ' · open chat' };
+        }
+      }
+      for (const dg of (this.dogs || [])) {
+        const d = Math.hypot(dg.x - p.x, dg.y - p.y);
+        if (d < 1.6 * T && d < bd) {
+          bd = d;
+          const tr = this.state.dogTreats || 0;
+          best = tr > 0
+            ? { id: 'dog_' + dg.id, act: 'dog', dogId: dg.id, ko: '🦴 ' + dg.ko + ' 간식 주기', en: '🦴 Give ' + dg.en + ' a treat' }
+            : { id: 'dog_' + dg.id, act: 'dog', dogId: dg.id, ko: '🐶 ' + dg.ko + ' 쓰다듬기', en: '🐶 Pet ' + dg.en };
+        }
+      }
     }
     this.promptTarget = best;
     // NPCs greet with their own topic lines when you walk up to them
@@ -1975,15 +2268,18 @@ class Component extends DCLogic {
     if (best && best.act === 'sit' && best.deskId) {
       const owner = this.state.seatMap[best.deskId];
       const uid = this.state.authUser && this.state.authUser.id;
-      if (owner && uid && owner.userId === uid) promptVal = { ko: '내 자리에 앉기', en: 'Sit at my desk' };
-      else if (owner) promptVal = { ko: owner.name + ' 님의 자리', en: owner.name + "'s desk" };
-      else if (uid) promptVal = { ko: '빈 책상 · 내 자리로 정하기', en: 'Empty desk · claim it' };
+      if (owner && uid && owner.userId === uid) promptVal = { ko: '💻 내 자리 앉기', en: '💻 Sit at my desk' };
+      else if (owner) promptVal = { ko: '📖 ' + owner.name + ' 님 책상 구경하기', en: "📖 Peek at " + owner.name + "'s desk" };
+      else if (uid) promptVal = { ko: '🪑 내 자리로 정하기', en: '🪑 Claim this desk' };
+      else promptVal = { ko: '💻 회고 라운지 구경하기', en: '💻 Peek at the Retro Lounge' };
     }
     if (best && best.act === 'pc') {
       const owner = this.state.seatMap[best.deskId];
       const uid = this.state.authUser && this.state.authUser.id;
-      if (owner && uid && owner.userId === uid) promptVal = { ko: '💻 일기장 열기', en: '💻 Open my diary' };
-      else if (owner) promptVal = { ko: '🔒 ' + owner.name + ' 님의 컴퓨터', en: '🔒 ' + owner.name + "'s computer" };
+      if (owner && uid && owner.userId === uid) promptVal = { ko: '💻 내 책상 열기', en: '💻 Open my desk' };
+      else if (owner) promptVal = { ko: '📖 ' + owner.name + ' 님 책상 구경하기', en: "📖 Peek at " + owner.name + "'s desk" };
+      else if (uid) promptVal = { ko: '🪑 내 자리로 정하기', en: '🪑 Claim this desk' };
+      else promptVal = { ko: '💻 회고 라운지 구경하기', en: '💻 Peek at the Retro Lounge' };
     }
     const sig = JSON.stringify([zone, best && best.id, promptVal, focusEnts.map(n => n.id), myStatus, zone === 'focus' ? pl : ((pl / 60) | 0), pm.phase]);
     if (sig !== this.uiSig) {
@@ -2013,6 +2309,8 @@ class Component extends DCLogic {
     if (this.player) {
       this.updatePlayer(dt);
       for (const n of this.activeNpcs()) this.updateNpc(n, dt, now);
+      for (const d of (this.dogs || [])) this.updateNpc(d, dt, now);
+      if (!this._joyBound && this.joyBaseRef.current && this.joyKnobRef.current) this.bindJoy();
       this.netTick(now, dt);
       const pm = this.getPomo(now);
       if (this._pomoPhase && this._pomoPhase !== pm.phase && this.state.ui.zone === 'focus') {
@@ -2057,7 +2355,7 @@ class Component extends DCLogic {
     cx = Math.round(cx); cy = Math.round(cy);
     g.setTransform(dpr * Z, 0, 0, dpr * Z, Math.round(-cx * dpr * Z), Math.round(-cy * dpr * Z));
     g.drawImage(this._staticC, 0, 0);
-    const ents = [this.player].concat(this.activeNpcs()).concat(Object.values(this.remotes || {}));
+    const ents = [this.player].concat(this.activeNpcs()).concat(this.dogs || []).concat(Object.values(this.remotes || {}));
     const items = [];
     for (const d of this.deco) items.push(d);
     for (const e of ents) items.push({ y: e.y + (((e.sitting || e.mode === 'sit') && e.dir === 'down') ? 18 : 0), ent: e });
@@ -2106,6 +2404,7 @@ class Component extends DCLogic {
   }
 
   drawEnt(g, e) {
+    if (e.dog) { this.drawDog(g, e); return; }
     const set = this.charSpr[e.id]; if (!set) return;
     let img;
     if (e.sitting || e.mode === 'sit') img = set.sit[e.dir] || set.sit.down;
@@ -2116,11 +2415,22 @@ class Component extends DCLogic {
     g.drawImage(img, Math.round(e.x - 16), Math.round(e.y - 54));
   }
 
+  drawDog(g, d) {
+    const sets = this._dogSets; if (!sets) return;
+    const s = sets[d.row]; if (!s) return;
+    const img = s[d.dir] || s.down;
+    const bob = d.moving ? Math.round(Math.sin(d.animT * 12) * 1.5) : 0;
+    const sw = d.row === 2 ? 30 : 22;
+    g.fillStyle = 'rgba(16,10,28,0.22)';
+    g.fillRect(Math.round(d.x - sw / 2), Math.round(d.y - 4), sw, 5);
+    g.drawImage(img, Math.round(d.x - 42), Math.round(d.y - 52 + bob));
+  }
+
   drawTag(g, e, lang) {
     const name = lang === 'ko' ? e.ko : e.en;
     g.font = '7px Galmuri7, Galmuri9, monospace'; g.textAlign = 'left'; g.textBaseline = 'middle';
     const w = g.measureText(name).width + 8;
-    const x = Math.round(e.x - w / 2), y = Math.round(e.y - 68);
+    const x = Math.round(e.x - w / 2), y = Math.round(e.y - (e.dog ? (e.row === 2 ? 52 : 34) : 68));
     g.fillStyle = e.id === 'me' ? 'rgba(226,87,76,0.92)' : 'rgba(20,14,36,0.78)';
     g.fillRect(x, y, w, 11);
     g.fillStyle = '#fff8e8';
@@ -2141,7 +2451,7 @@ class Component extends DCLogic {
     if (lines.length < 3 && cur) lines.push(cur);
     const bw = Math.max.apply(null, lines.map(l => g.measureText(l).width)) + 12;
     const bh = lines.length * 12 + 8;
-    const x = Math.round(e.x - bw / 2), y = Math.round(e.y - 76 - bh);
+    const x = Math.round(e.x - bw / 2), y = Math.round(e.y - (e.dog ? (e.row === 2 ? 58 : 40) : 76) - bh);
     g.fillStyle = '#241a38'; g.fillRect(x - 2, y - 2, bw + 4, bh + 4);
     g.fillStyle = '#fff8e8'; g.fillRect(x, y, bw, bh);
     g.fillStyle = '#241a38'; g.fillRect(Math.round(e.x - 4), y + bh + 2, 8, 3); g.fillRect(Math.round(e.x - 2), y + bh + 5, 4, 2);
@@ -2168,6 +2478,7 @@ class Component extends DCLogic {
     g.drawImage(this._miniBase, 0, 0);
     const s = 4, T = this.T;
     for (const n of this.activeNpcs()) { g.fillStyle = n.col; g.fillRect((n.x / T) * s - 1, (n.y / T) * s - 1, 3, 3); }
+    for (const d of (this.dogs || [])) { g.fillStyle = d.col; g.fillRect((d.x / T) * s - 1, (d.y / T) * s - 1, 3, 3); }
     for (const k of Object.keys(this.remotes || {})) { const r = this.remotes[k]; g.fillStyle = r.col; g.fillRect((r.x / T) * s - 1, (r.y / T) * s - 1, 3, 3); }
     const p = this.player;
     g.fillStyle = ((now / 500) | 0) % 2 ? '#fff8e8' : '#ffd93d';
@@ -2232,17 +2543,28 @@ class Component extends DCLogic {
     const stampNotice = st.stampStatus === 'loading' ? L.stampLoading : st.stampStatus === 'error' ? L.stampError : L.stampEmpty;
     const stampedToday = (st.myStampDays || []).indexOf(this.todayStr()) >= 0;
     const streakN = this.stampStreak(st.myStampDays);
-    // diary (grouped by date)
+    // retro feed (grouped by date)
     let lastDate = null;
     const diaryEntries = (st.diaryRows || []).map(d => {
       const dt = new Date(d.created_at);
       const dateStr = dt.getFullYear() + '.' + (dt.getMonth() + 1) + '.' + dt.getDate();
       const showDate = dateStr !== lastDate;
       lastDate = dateStr;
-      return { id: d.id, showDate, date: dateStr, time: String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0'), content: d.content };
+      return { id: d.id, showDate, date: dateStr, time: String(dt.getHours()).padStart(2, '0') + ':' + String(dt.getMinutes()).padStart(2, '0'), content: d.content, name: d.name || '주민' };
     });
     const diaryShowNotice = st.diaryStatus !== 'ready' || diaryEntries.length === 0;
     const diaryNotice = st.diaryStatus === 'loading' ? L.diaryLoading : st.diaryStatus === 'error' ? L.diaryError : L.diaryEmpty;
+    const diaryTitleText = st.diaryFilter ? st.diaryFilter.name + L.diaryOf : L.diaryTitle;
+    const isKo = L.send === '전송';
+    const dNow = new Date();
+    const dashDate = isKo
+      ? dNow.getFullYear() + '.' + (dNow.getMonth() + 1) + '.' + dNow.getDate() + ' (' + ['일','월','화','수','목','금','토'][dNow.getDay()] + ')'
+      : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dNow.getDay()] + ', ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dNow.getMonth()] + ' ' + dNow.getDate();
+    const dashPn = (st.pName || '').trim();
+    const dashTitle = st.diaryFilter ? st.diaryFilter.name + L.dashOwn : (dashPn ? dashPn + L.dashOwn : (isKo ? '나의 게더가든' : 'My GatherGarden'));
+    const dashShowStreak = streakN > 0 && !st.diaryFilter;
+    const diaryCanWrite = !st.diaryFilter && !!st.authUser;
+    const diaryNeedLogin = !st.diaryFilter && !st.authUser;
     // guestbook
     const gtime = (iso) => { const d = new Date(iso); return (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
     const gbEntries = (st.gbEntries || []).map(g => ({ id: g.id, name: g.name, col: g.col || '#8d7ab0', time: gtime(g.created_at), message: g.message }));
@@ -2296,6 +2618,9 @@ class Component extends DCLogic {
       myAvatarStyle: Object.assign({ width: '38px', height: '38px', imageRendering: 'pixelated', border: '2px solid #241a38', flex: 'none', backgroundColor: '#ffe9b8' }, av.me ? { backgroundImage: 'url("' + av.me + '")', backgroundSize: 'cover' } : {}),
       myStatusColor: dot[ui.myStatus] || dot.online, myStatusLabel: stLabel(ui.myStatus || 'online'),
       toolbarBtns,
+      showJoy: !!st.isTouch, joyBaseRef: this.joyBaseRef, joyKnobRef: this.joyKnobRef, tryInteractBtn: this.tryInteract,
+      renameOpen: st.renameOpen, renameDraft: st.renameDraft, openRename: this.openRename, closeRename: this.closeRename,
+      onRenameChange: this.onRenameChange, onRenameKey: this.onRenameKey, saveRename: this.saveRename,
       panelOpen: st.panelOpen, tabChat: st.tab === 'chat', tabPeople: st.tab === 'people',
       chatTabBg: st.tab === 'chat' ? '#ffe9b8' : '#f6edd8', peopleTabBg: st.tab === 'people' ? '#ffe9b8' : '#f6edd8',
       openChatTab: this.openChatTab, openPeopleTab: this.openPeopleTab, closePanel: this.closePanel,
@@ -2310,7 +2635,8 @@ class Component extends DCLogic {
       onGbChange: this.onGbChange, onGbKey: this.onGbKey, sendGb: this.sendGb, closeGuestbook: this.closeGuestbook,
       fortuneOpen: st.fortuneOpen, fortuneText: st.fortuneText, closeFortune: this.closeFortune,
       seatAskOpen: !!st.seatAsk, confirmSeat: this.confirmSeat, justSit: this.justSit, cancelSeat: this.cancelSeat,
-      diaryOpen: st.diaryOpen, diaryEntries, diaryShowNotice, diaryNotice, diaryDraft: st.diaryDraft,
+      diaryOpen: st.diaryOpen, diaryEntries, diaryShowNotice, diaryNotice, diaryDraft: st.diaryDraft, diaryTitleText, diaryCanWrite, diaryNeedLogin,
+      diaryDeskMode: true, diaryPlainMode: false, dashTitle, dashDate, dashShowStreak,
       onDiaryChange: this.onDiaryChange, sendDiary: this.sendDiary, closeDiary: this.closeDiary,
       stampOpen: st.stampOpen, stampEntries, stampShowNotice, stampNotice, stampDraft: st.stampDraft,
       stampCanWrite: !!st.authUser && !stampedToday, stampDoneToday: !!st.authUser && stampedToday, stampNeedLogin: !st.authUser,

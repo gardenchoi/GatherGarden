@@ -190,15 +190,23 @@ window.__townRT = {
     },
   },
   diary: {
-    async list() {
+    async list(userId) {
       if (!client) return { ok: false, error: "no-client", rows: [] };
-      const { data, error } = await client
+      let q = client
         .from("diaries")
-        .select("id, content, created_at")
+        .select("id, user_id, content, created_at")
         .order("created_at", { ascending: false })
         .limit(200);
+      if (userId) q = q.eq("user_id", userId);
+      const { data, error } = await q;
       if (error) return { ok: false, error: error.message, rows: [] };
-      return { ok: true, rows: data || [] };
+      const ids = [...new Set((data || []).map((r) => r.user_id))];
+      const names = {};
+      if (ids.length) {
+        const { data: profs } = await client.from("profiles").select("id, name").in("id", ids);
+        (profs || []).forEach((p) => { names[p.id] = p.name; });
+      }
+      return { ok: true, rows: (data || []).map((r) => ({ ...r, name: names[r.user_id] || "주민" })) };
     },
     async add(content) {
       if (!client) return { ok: false, error: "no-client" };
