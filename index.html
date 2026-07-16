@@ -897,7 +897,7 @@ class Component extends DCLogic {
   };
   closeStamp = () => this.setState({ stampOpen: false });
   onStampChange = (e) => this.setState({ stampDraft: e.target.value.slice(0, 100) });
-  onStampKey = (e) => { if (e.key === 'Enter') this.sendStamp(); if (e.key === 'Escape') e.target.blur(); };
+  onStampKey = (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === 'Enter') this.sendStamp(); if (e.key === 'Escape') e.target.blur(); };
   sendStamp = () => {
     if (!this.requireLogin()) return;
     const txt = (this.state.stampDraft || '').trim();
@@ -1938,7 +1938,7 @@ class Component extends DCLogic {
   openRename = () => this.setState({ renameOpen: true, renameDraft: (this.state.pName || '').trim() });
   closeRename = () => this.setState({ renameOpen: false });
   onRenameChange = (e) => this.setState({ renameDraft: e.target.value.slice(0, 10) });
-  onRenameKey = (e) => { if (e.key === 'Enter') this.saveRename(); if (e.key === 'Escape') this.closeRename(); };
+  onRenameKey = (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === 'Enter') this.saveRename(); if (e.key === 'Escape') this.closeRename(); };
   saveRename = () => {
     const nm = (this.state.renameDraft || '').trim().slice(0, 10);
     if (!nm) { this.setState({ renameOpen: false }); return; }
@@ -1967,7 +1967,7 @@ class Component extends DCLogic {
   };
   closeGuestbook = () => this.setState({ gbOpen: false });
   onGbChange = (e) => this.setState({ gbDraft: e.target.value });
-  onGbKey = (e) => { if (e.key === 'Enter') this.sendGb(); if (e.key === 'Escape') e.target.blur(); };
+  onGbKey = (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === 'Enter') this.sendGb(); if (e.key === 'Escape') e.target.blur(); };
   sendGb = () => {
     if (!this.requireLogin()) return;
     const txt = (this.state.gbDraft || '').trim();
@@ -1996,7 +1996,7 @@ class Component extends DCLogic {
   };
   closeFortune = () => this.setState({ fortuneOpen: false });
   onChatChange = (e) => this.setState({ chatDraft: e.target.value });
-  onChatKey = (e) => { if (e.key === 'Enter') this.sendChat(); if (e.key === 'Escape') e.target.blur(); };
+  onChatKey = (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === 'Enter') this.sendChat(); if (e.key === 'Escape') e.target.blur(); };
   onChatFocus = () => { this.typing = true; if (this.keys) this.keys.clear(); };
   onChatBlur = () => { this.typing = false; };
 
